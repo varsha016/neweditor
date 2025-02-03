@@ -10,8 +10,6 @@ export default function AdminLogin() {
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
 
-
-
     const handleLogin = async () => {
         // Basic validation
         if (!email || !password) {
@@ -25,8 +23,7 @@ export default function AdminLogin() {
             const response = await axios.post("/api/adminLogin", {
                 email,
                 password
-            },
-            );
+            });
             console.log("Login successful:", response.data);
             // Check if response contains token
             if (response.data?.token) {
@@ -45,29 +42,32 @@ export default function AdminLogin() {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center h-screen bg-gray-600">
-            <h1 className="text-2xl font-bold mb-4 text-white">Admin Login</h1>
-            <input
-                type="email"
-                placeholder="Email"
-                className="mb-2 p-2 border rounded w-64"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-            />
-            <input
-                type="password"
-                placeholder="Password"
-                className="mb-2 p-2 border rounded w-64"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-            />
-            <button
-                onClick={handleLogin}
-                className={`bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
-                disabled={loading} // Disable button during loading
-            >
-                {loading ? "Logging in..." : "Login"}
-            </button>
+        <div className="flex flex-col items-center justify-center h-screen bg-slate-700">
+            <div className="bg-white hover:bg-slate-300 p-8 rounded-lg shadow-lg max-w-sm w-full">
+                <h1 className="text-3xl font-semibold text-center text-gray-800 mb-6">Admin Login</h1>
+
+                <input
+                    type="email"
+                    placeholder="Email"
+                    className="mb-4 p-3 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                />
+                <input
+                    type="password"
+                    placeholder="Password"
+                    className="mb-4 p-3 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                />
+                <button
+                    onClick={handleLogin}
+                    className={`w-full text-xl p-3 bg-blue-500  text-white font-semibold rounded-lg hover:bg-blue-600 transition duration-200 ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
+                    disabled={loading} // Disable button during loading
+                >
+                    {loading ? "Logging in..." : "Login"}
+                </button>
+            </div>
         </div>
     );
 }

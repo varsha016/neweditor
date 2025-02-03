@@ -9,7 +9,7 @@ import { NextResponse } from "next/server"; // Import NextResponse
 const nodemailer = require('nodemailer');
 
 connectDB();
-console.log("RESEND_API_KEY:", process.env.RESEND_API_KEY);
+// console.log("RESEND_API_KEY:", process.env.RESEND_API_KEY);
 
 // let resend;
 // try {
