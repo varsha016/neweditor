@@ -34,7 +34,7 @@ const Editor = () => {
     const [isRecording, setIsRecording] = useState(false);
     const [recognition, setRecognition] = useState(null);
     const [fileName, setFileName] = useState('');
-    const [margins, setMargins] = useState({ top: 1, bottom: 2, left: 1, right: 1 });
+    const [margins, setMargins] = useState({ top: 1, bottom: 1, left: 1, right: 1 });
     const [isDropdownVisible, setIsDropdownVisible] = useState(false);
     const [isVerified, setIsVerified] = useState(false);
     const [paginatedPages, setPaginatedPages] = useState([""]);
@@ -107,43 +107,53 @@ const Editor = () => {
         }
     };
 
+
+
     const paginateText = (text) => {
-        const lineHeight = fontSize * 1.2; // Line height
-        const maxLinesPerPage = Math.floor((pageSize.height * 37.8) / lineHeight); // Max lines per page
+        const lineHeight = fontSize * 1.2; // Approximate line height
+        const maxLinesPerPage = Math.floor((pageSize.height * 24.8) / lineHeight); // Max lines per page
         const maxCharsPerLine = Math.floor((pageSize.width * 37.8) / (fontSize * 0.5)); // Max characters per line
 
-        const words = text.split(" "); // Split words by spaces
-        let currentPage = []; // Array to hold current page content
-        let pages = []; // Array to hold all pages
-        let line = ""; // Holds current line
+        const words = text.split(" "); // Split text into words
+        let currentPage = []; // Holds lines for the current page
+        let pages = [...paginatedPages]; // Preserve existing pages
+        let line = ""; // Holds the current line
+        let lastPageIndex = pages.length - 1;
+
+        if (!pages.length) pages.push(""); // Ensure at least one page exists
 
         words.forEach((word) => {
-            // Check if the word fits on the current line
             if ((line + word).length <= maxCharsPerLine) {
-                line += word + " "; // Add word to the line
+                line += word + " "; // Add the word to the current line
             } else {
-                currentPage.push(line.trim()); // Push current line to current page
-                line = word + " "; // Start new line with the current word
+                currentPage.push(line.trim());
+                line = word + " "; // Start a new line
 
-                // If the page is full, push it to the pages array
                 if (currentPage.length >= maxLinesPerPage) {
-                    pages.push(currentPage.join("\n"));
+                    pages[lastPageIndex] = currentPage.join("\n");
+                    pages.push(""); // Create a new empty page
+                    lastPageIndex++;
                     currentPage = [];
                 }
             }
         });
 
-        if (line.trim()) currentPage.push(line.trim()); // Add remaining text
-        if (currentPage.length) pages.push(currentPage.join("\n")); // Push the last page
+        if (line.trim()) currentPage.push(line.trim());
 
-        // Update the pages state
-        setPaginatedPages(pages);
-
-        // Update the editor content dynamically to reflect the pagination
-        if (editor) {
-            editor.commands.setContent(pages.join("\n\n"));
+        if (currentPage.length > 0) {
+            pages[lastPageIndex] = currentPage.join("\n");
         }
+
+        setPaginatedPages(pages);
     };
+
+    // Update only the last page instead of resetting all content
+    useEffect(() => {
+        if (editor && paginatedPages.length) {
+            editor.commands.setContent(paginatedPages[paginatedPages.length - 1]);
+        }
+    }, [paginatedPages, editor]);
+
 
 
     const downloadPDF = async () => {
@@ -446,8 +456,10 @@ const Editor = () => {
                                 <FaUnderline className="text-lg" />
                             </button>
                         </div>
-                        <div className="editor-container flex flex-wrap justify-center p-4">
-                            {paginatedPages?.map((pageContent, index) => (
+
+
+                        {/* <div className="editor-container flex flex-wrap justify-center p-4">
+                            {paginatedPages.map((pageContent, index) => (
                                 <div
                                     key={index}
                                     className="editor-page bg-white border shadow-lg mb-4 p-6 rounded-lg relative"
@@ -458,17 +470,39 @@ const Editor = () => {
                                         fontFamily: selectedFont,
                                         padding: `${margins.top}cm ${margins.right}cm ${margins.bottom}cm ${margins.left}cm`,
                                         overflow: "hidden",
-                                        pageBreakAfter: "always", // Add page break after each page
+                                        pageBreakAfter: "always", // Ensure page breaks after each page
                                     }}
                                 >
                                     <span className="absolute top-1 right-1 text-gray-400">Page {index + 1}</span>
                                     <EditorContent editor={editor} content={pageContent} />
                                 </div>
                             ))}
+                        </div> */}
+
+                        <div className="editor-container flex flex-wrap justify-center p-4">
+                            {paginatedPages.map((pageContent, index) => (
+                                <div
+                                    key={index}
+                                    className="editor-page bg-white border shadow-lg mb-4 p-6 rounded-lg relative"
+                                    style={{
+                                        width: `${pageSize.width}cm`,
+                                        height: `${pageSize.height}cm`,
+                                        fontSize: `${fontSize}px`,
+                                        fontFamily: selectedFont,
+                                        padding: `${margins.top}cm ${margins.right}cm ${margins.bottom}cm ${margins.left}cm`,
+                                        overflow: "hidden",
+                                        pageBreakAfter: "always",
+                                    }}
+                                >
+                                    <span className="absolute top-1 right-1 text-gray-400">Page {index + 1}</span>
+                                    {index === paginatedPages.length - 1 ? (
+                                        <EditorContent editor={editor} />
+                                    ) : (
+                                        <p className="whitespace-pre-wrap">{pageContent}</p>
+                                    )}
+                                </div>
+                            ))}
                         </div>
-
-
-
 
 
                     </div>

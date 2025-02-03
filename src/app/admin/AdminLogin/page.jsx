@@ -3,6 +3,11 @@
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { GoogleOAuthProvider, GoogleLogin, } from '@react-oauth/google';
+import { jwtDecode } from "jwt-decode";
+// import { googleLogout } from '@react-oauth/google';
+
+// googleLogout();   //logout button vr call krach
 
 export default function AdminLogin() {
     const router = useRouter();
@@ -40,7 +45,19 @@ export default function AdminLogin() {
             alert(error.response?.data?.message || error.message); // Show error to the user
         }
     };
+    // googlr login
+    const handleSuccess = (credentialResponse) => {
+        const decoded = jwtDecode(credentialResponse.credential);
+        console.log('Login Success:', decoded);
+        alert("Login successful!");
+        setLoading(false);
+        router.push("/admin/dashboard");
+        // You can now use the decoded user info (e.g., name, email, etc.) in your app
+    };
 
+    const handleError = () => {
+        console.log('Login Failed');
+    };
     return (
         <div className="flex flex-col items-center justify-center h-screen bg-slate-700">
             <div className="bg-white hover:bg-slate-300 p-8 rounded-lg shadow-lg max-w-sm w-full">
@@ -67,7 +84,17 @@ export default function AdminLogin() {
                 >
                     {loading ? "Logging in..." : "Login"}
                 </button>
+                <h1 className="text-center font-bold text-xl">OR</h1>
+                <GoogleOAuthProvider clientId="936841575619-kkjac6el0eo2g8i2itqtkecijt0ngg5j.apps.googleusercontent.com">
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', }} >
+                        <GoogleLogin
+                            onSuccess={handleSuccess}
+                            onError={handleError}
+                        />
+                    </div>
+                </GoogleOAuthProvider>
             </div>
+
         </div>
     );
 }
