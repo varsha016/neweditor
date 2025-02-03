@@ -447,7 +447,7 @@ const Editor = () => {
                             </button>
                         </div>
                         <div className="editor-container flex flex-wrap justify-center p-4">
-                            {paginatedPages.map((pageContent, index) => (
+                            {paginatedPages?.map((pageContent, index) => (
                                 <div
                                     key={index}
                                     className="editor-page bg-white border shadow-lg mb-4 p-6 rounded-lg relative"
