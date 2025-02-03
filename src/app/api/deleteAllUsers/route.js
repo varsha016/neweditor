@@ -1,5 +1,5 @@
 import { connectDB } from "@/utils/dbConnect";
-import User from "@/app/models/userModels"; // Correct path to your model
+import User from "../../models/usermodels";
 import { NextResponse } from "next/server"; // Import NextResponse
 
 connectDB();

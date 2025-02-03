@@ -1,47 +1,11 @@
 
 
 
-// import { User } from "@/models/usermodels";
-// import dbConnect from "@/utils/dbConnect";
-
-// export default async function handler(req, res) {
-//     await dbConnect();
-
-//     if (req.method === "POST") {
-//         const { email, code } = req.body;
-
-//         try {
-//             const user = await User.findOne({ email });
-//             if (!user) {
-//                 return res.status(404).json({ message: "User not found" });
-//             }
-
-//             const userCode = user.codes.find(c => c.code === code);
-//             if (!userCode) {
-//                 return res.status(400).json({ message: "Invalid code" });
-//             }
-
-//             if (userCode.verified) {
-//                 return res.status(400).json({ message: "Code already verified" });
-//             }
-
-//             userCode.verified = true;
-//             await user.save();
-
-//             res.status(200).json({ message: "Code verified successfully" });
-//         } catch (error) {
-//             res.status(500).json({ message: "Error verifying code", error });
-//         }
-//     } else {
-//         res.status(405).json({ message: "Method not allowed" });
-//     }
-// }
 
 
 import { NextResponse } from "next/server";
-// import { User } from "@/models/usermodels";
-import User from "@/app/models/userModels";
-// import dbConnect from "@/utils/dbConnect";
+
+import User from "../../models/usermodels";
 import { connectDB } from "@/utils/dbConnect";
 
 // Call dbConnect outside the handler

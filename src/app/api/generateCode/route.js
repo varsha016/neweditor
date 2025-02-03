@@ -3,8 +3,8 @@
 
 
 import { connectDB } from "@/utils/dbConnect";
-import User from "@/app/models/userModels"; // Correct path to your model
-import { Resend } from "resend";
+import User from "../../models/usermodels";
+// import { Resend } from "resend";
 import { NextResponse } from "next/server"; // Import NextResponse
 const nodemailer = require('nodemailer');
 
