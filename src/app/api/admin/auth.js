@@ -1,5 +1,7 @@
 import jwt from 'jsonwebtoken';
-import User from '@/app/models/usermodels';
+import User from '../../models/usermodels';
+// import User from "../../../models/userModels";
+
 
 const authenticateAdmin = async (req, res, next) => {
     // Get token from headers

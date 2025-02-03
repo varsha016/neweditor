@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import { connectDB } from "@/utils/dbConnect";
-import User from "@/app/models/userModels"; // Correct path to your model
-import { NextResponse } from "next/server"; // Import NextResponse
+import User from "../../models/usermodels";
+import { NextResponse } from "next/server";
 
 connectDB();
 
