@@ -16,6 +16,7 @@ import { useRouter } from 'next/navigation';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
+import useDisableCopy from '../hook/page';
 
 const languageOptions = [
     { code: "en-US", name: "English", fonts: ["Arial", "Times New Roman", "Georgia", "Verdana", "Courier New"] },
@@ -280,28 +281,29 @@ const Editor = () => {
     //     };
     // }, []);
 
-    useEffect(() => {
-        const preventCopy = (event) => {
-            event.preventDefault();
-            alert("Copying text is disabled!");
-        };
+    // useEffect(() => {
+    //     const preventCopy = (event) => {
+    //         event.preventDefault();
+    //         alert("Copying text is disabled!");
+    //     };
 
-        const preventKeyboardCopy = (event) => {
-            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "c") {
-                event.preventDefault();
-                alert("Copying text is disabled!");
-            }
-        };
+    //     const preventKeyboardCopy = (event) => {
+    //         if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "c") {
+    //             event.preventDefault();
+    //             alert("Copying text is disabled!");
+    //         }
+    //     };
 
-        document.addEventListener("copy", preventCopy);
-        document.addEventListener("keydown", preventKeyboardCopy);
+    //     document.addEventListener("copy", preventCopy);
+    //     document.addEventListener("keydown", preventKeyboardCopy);
 
-        return () => {
-            document.removeEventListener("copy", preventCopy);
-            document.removeEventListener("keydown", preventKeyboardCopy);
-        };
-    }, []);
+    //     return () => {
+    //         document.removeEventListener("copy", preventCopy);
+    //         document.removeEventListener("keydown", preventKeyboardCopy);
+    //     };
+    // }, []);
 
+    useDisableCopy();
     // user can't cop text
     return (
         <div className="h-screen bg-gradient-to-r from-blue-50 to-blue-100 flex flex-col">

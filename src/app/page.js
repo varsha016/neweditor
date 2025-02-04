@@ -1,8 +1,9 @@
-import Image from "next/image";
+// import Image from "next/image";
 import Editor from "./texteditor/page";
-import ErrorBoundary from "./components/common/ErrorBoundary ";
+// import ErrorBoundary from "./components/common/ErrorBoundary ";
 
 export default function Home() {
+  useDisableCopy();
   return (
     <>
       {/* <ErrorBoundary> */}
