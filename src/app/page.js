@@ -3,7 +3,7 @@ import Editor from "./texteditor/page";
 // import ErrorBoundary from "./components/common/ErrorBoundary ";
 
 export default function Home() {
-  useDisableCopy();
+
   return (
     <>
       {/* <ErrorBoundary> */}
