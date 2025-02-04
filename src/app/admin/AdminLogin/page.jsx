@@ -59,7 +59,7 @@ export default function AdminLogin() {
         console.log('Login Failed');
     };
     return (
-        <div className="flex flex-col items-center justify-center h-screen bg-slate-700">
+        <div className="flex flex-col items-center justify-center h-screen bg-gray-900">
             <div className="bg-white hover:bg-slate-300 p-8 rounded-lg shadow-lg max-w-sm w-full">
                 <h1 className="text-3xl font-semibold text-center text-gray-800 mb-6">Admin Login</h1>
 

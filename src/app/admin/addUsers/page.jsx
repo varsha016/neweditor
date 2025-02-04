@@ -73,7 +73,7 @@ const AddUser = () => {
     };
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
+        <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 p-4">
             <div className="max-w-2xl w-full bg-white shadow-lg rounded-lg p-8">
                 <h1 className="text-3xl font-semibold text-center text-blue-600 mb-8">Add User</h1>
 

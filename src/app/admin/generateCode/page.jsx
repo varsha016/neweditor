@@ -43,7 +43,7 @@ export default function GenerateCodesForm() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-600">
+        <div className="min-h-screen flex items-center justify-center bg-gray-900">
             <div className="max-w-lg mx-auto p-6 border rounded-lg shadow-xl bg-white ">
                 <h1 className="text-3xl font-bold text-center text-blue-600 mb-6">Generate Verification Codes</h1>
 

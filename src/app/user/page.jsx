@@ -12,7 +12,7 @@ export default function VerifyCode() {
     const verifyCode = async () => {
         try {
             const response = await axios.post("/api/verifyCode", { email, code });
-            console.log(response.data, "VVVVVVVVV");
+            // console.log(response.data, "VVVVVVVVV");
 
             if (response.data.message === "Code verified successfully") {
                 alert(response.data.message);
@@ -28,7 +28,7 @@ export default function VerifyCode() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-purple-400 via-pink-500 to-red-500">
+        <div className="min-h-screen flex items-center justify-center bg-gray-900">
             <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
                 <h2 className="text-3xl font-semibold text-center text-gray-700 mb-6">Verify Your Code</h2>
                 <div className="space-y-4">
@@ -55,7 +55,7 @@ export default function VerifyCode() {
 
                 </div>
                 <div className="mt-6 text-center">
-                    <p className="text-gray-600">Don't have an account? <a href="/signup" className="text-blue-600 hover:text-blue-800">Sign up</a></p>
+                    <p className="text-gray-600">Don't have an account? </p>
                 </div>
             </div>
         </div>

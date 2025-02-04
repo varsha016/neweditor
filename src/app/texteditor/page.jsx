@@ -251,7 +251,58 @@ const Editor = () => {
     }, []);
 
     const navigateToVerificationPage = () => router.push('/user');
+    // user can't cop text
+    // useEffect(() => {
+    //     const preventCopyPaste = (event) => {
+    //         event.preventDefault();
+    //         alert("Copy-Paste is disabled!");
+    //     };
 
+    //     const preventKeyboardShortcuts = (event) => {
+    //         if ((event.ctrlKey || event.metaKey) && ["c", "x", "v"].includes(event.key.toLowerCase())) {
+    //             event.preventDefault();
+    //             alert("Copy-Paste is disabled!");
+    //         }
+    //     };
+
+    //     document.addEventListener("copy", preventCopyPaste);
+    //     document.addEventListener("cut", preventCopyPaste);
+    //     document.addEventListener("paste", preventCopyPaste);
+    //     document.addEventListener("keydown", preventKeyboardShortcuts);
+    //     document.addEventListener("contextmenu", preventCopyPaste); // Disable right-click
+
+    //     return () => {
+    //         document.removeEventListener("copy", preventCopyPaste);
+    //         document.removeEventListener("cut", preventCopyPaste);
+    //         document.removeEventListener("paste", preventCopyPaste);
+    //         document.removeEventListener("keydown", preventKeyboardShortcuts);
+    //         document.removeEventListener("contextmenu", preventCopyPaste);
+    //     };
+    // }, []);
+
+    useEffect(() => {
+        const preventCopy = (event) => {
+            event.preventDefault();
+            alert("Copying text is disabled!");
+        };
+
+        const preventKeyboardCopy = (event) => {
+            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "c") {
+                event.preventDefault();
+                alert("Copying text is disabled!");
+            }
+        };
+
+        document.addEventListener("copy", preventCopy);
+        document.addEventListener("keydown", preventKeyboardCopy);
+
+        return () => {
+            document.removeEventListener("copy", preventCopy);
+            document.removeEventListener("keydown", preventKeyboardCopy);
+        };
+    }, []);
+
+    // user can't cop text
     return (
         <div className="h-screen bg-gradient-to-r from-blue-50 to-blue-100 flex flex-col">
             <header className="flex items-center justify-between text-white bg-black px-6 py-4 shadow-lg">
