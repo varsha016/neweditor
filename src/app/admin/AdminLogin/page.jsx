@@ -29,7 +29,7 @@ export default function AdminLogin() {
                 email,
                 password
             });
-            console.log("Login successful:", response.data);
+            console.log("Login successful:", response.data.token);
             // Check if response contains token
             if (response.data?.token) {
                 localStorage.setItem("adminToken", response.data.token);

@@ -9,14 +9,7 @@ import { NextResponse } from "next/server"; // Import NextResponse
 const nodemailer = require('nodemailer');
 
 connectDB();
-// console.log("RESEND_API_KEY:", process.env.RESEND_API_KEY);
 
-// let resend;
-// try {
-//     resend = new Resend(process.env.RESEND_API_KEY);  // Ensure the API key is correctly set in .env
-// } catch (error) {
-//     console.error("Error initializing Resend:", error.message);
-// }
 
 export async function POST(req) {
     try {

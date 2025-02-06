@@ -248,9 +248,11 @@ const Editor = () => {
 
     useEffect(() => {
         const verified = localStorage.getItem("isVerified") === "true";
+
         setIsVerified(verified);
     }, []);
 
+    console.log(isVerified, "hello hi how are you");
     const navigateToVerificationPage = () => router.push('/user');
     // user can't cop text
     // useEffect(() => {
@@ -302,8 +304,7 @@ const Editor = () => {
     //         document.removeEventListener("keydown", preventKeyboardCopy);
     //     };
     // }, []);
-
-    useDisableCopy();
+    useDisableCopy(isVerified);
     // user can't cop text
     return (
         <div className="h-screen bg-gradient-to-r from-blue-50 to-blue-100 flex flex-col">

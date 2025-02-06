@@ -1,14 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
-const useDisableCopy = () => {
-    const [isClient, setIsClient] = useState(false);
-
+const useDisableCopy = (isVerified) => {
     useEffect(() => {
-        setIsClient(true);
-    }, []);
-
-    useEffect(() => {
-        if (!isClient) return; // Ensure it's running on the client
+        if (isVerified) return; // Allow copy if user is verified
 
         const preventCopy = (event) => {
             event.preventDefault();
@@ -29,7 +23,7 @@ const useDisableCopy = () => {
             document.removeEventListener("copy", preventCopy);
             document.removeEventListener("keydown", preventKeyboardCopy);
         };
-    }, [isClient]); // Run only when the client is ready
+    }, [isVerified]); // Run effect when `isVerified` changes
 };
 
 export default useDisableCopy;
