@@ -7,16 +7,18 @@ import { useRouter } from "next/navigation";
 export default function VerifyCode() {
     const [email, setEmail] = useState("");
     const [code, setCode] = useState("");
+
     const router = useRouter();
 
     const verifyCode = async () => {
         try {
             const response = await axios.post("/api/verifyCode", { email, code });
-            // console.log(response.data, "VVVVVVVVV");
+            console.log(response.data, "VVVVVVVVV");
 
             if (response.data.message === "Code verified successfully") {
                 alert(response.data.message);
                 localStorage.setItem("isVerified", "true");
+                // setIsVerified(true); // Update state
                 router.push("/");
             } else {
                 alert(response.data.message || "Verification failed. Please try again.");
@@ -46,6 +48,7 @@ export default function VerifyCode() {
                         onChange={(e) => setCode(e.target.value)}
                         className="w-full p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
+
                     <button
                         onClick={verifyCode}
                         className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-300"
