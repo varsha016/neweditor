@@ -46,7 +46,7 @@ const Sidebar = ({ isLeftSidebarVisible,
                         onChange={handlePageSizeChange}
                         className="p-2 border rounded-md w-full"
                     >
-                        {Object?.keys(pageSizes)?.map((size) => (
+                        {Object?.keys(pageSizes || {})?.map((size) => (
                             <option key={size} value={size}>
                                 {size}
                             </option>
