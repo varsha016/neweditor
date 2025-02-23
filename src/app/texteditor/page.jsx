@@ -716,6 +716,7 @@ import { Text } from '@tiptap/extension-text'
 import Header from '../main/header/page';
 import Sidebar from '../main/sidebar/page';
 import Toolbar from '../main/toolbar/page';
+import templates from '../main/templates';
 import EditorComponent from '../main/editorComponent/page';
 
 const languageOptions = [
@@ -757,7 +758,7 @@ const Editor = () => {
     const [pageSize, setPageSize] = useState({ width: 21.0, height: 29.7 });
     const [isRecording, setIsRecording] = useState(false);
     const [recognition, setRecognition] = useState(null);
-    const [fileName, setFileName] = useState('');
+    const [fileName, setFileName] = useState("");
     const [margins, setMargins] = useState({ top: 1, bottom: 1, left: 1, right: 1 });
     const [isDropdownVisible, setIsDropdownVisible] = useState(false);
     const [isVerified, setIsVerified] = useState(false);
@@ -769,52 +770,89 @@ const Editor = () => {
     const [isLeftSidebarVisible, setIsLeftSidebarVisible] = useState(true);
 
 
-    // const editor = useEditor({
-    //     extensions: [StarterKit, Underline, TextStyle,],
-    //     content: text,
-    //     onUpdate: ({ editor }) => setText(editor.getHTML()),
-    // });
-
-
-
-
-
-
-
-
-
     const editor = useEditor({
-        extensions: [
-            StarterKit.configure({ history: true }),
-            Bold,
-            Italic,
-            Underline,
-            TextStyle,
-        ],
+        extensions: [StarterKit, Underline, TextStyle,],
         content: text,
         onUpdate: ({ editor }) => {
-            let updatedHTML = editor.getHTML();
-
-            let cleanedText = updatedHTML
-
-                .replace(/&nbsp;/g, ' ')
-                .replace(/<br\s*\/?>/g, '<br> ')
-                .replace(/<u>(\s+)<\/u>/g, '$1')
-                .replace(/(<(b|i|u|span|strong|em)[^>]*>)(\s+)(<\/\2>)/g, '$1&nbsp;$4')
-                .replace(/<p>(.*?)<\/p>/g, (match, content) => {
-                    return `<p>${content.replace(/\s/g, '&nbsp;')}</p>`;
-                });
-            // console.log(cleanedText, "cleanedText");
-            setText(cleanedText);
-            paginateText(cleanedText);
-            saveDraftToBrowser(cleanedText);
-        },
+            setText(editor.getHTML());
+        }
     });
 
 
 
 
+    // Use useEffect to trigger functions when `text` updates
+    useEffect(() => {
+        if (text) {
+            paginateText(text);
+            handleTyping(text);
+        }
+    }, [text]); // Runs whenever `text` updat
 
+    // const editor = useEditor({
+    //     extensions: [
+    //         StarterKit.configure({ history: true }),
+    //         Bold,
+    //         Italic,
+    //         Underline,
+    //         TextStyle,
+    //     ],
+    //     content: text,
+    //     // onUpdate: ({ editor }) => {
+    //     //     let updatedHTML = editor.getHTML();
+
+    //     //     let cleanedText = updatedHTML
+
+    //     //         .replace(/&nbsp;/g, ' ')
+    //     //         .replace(/<br\s*\/?>/g, '<br> ')
+    //     //         .replace(/<u>(\s+)<\/u>/g, '$1')
+    //     //         .replace(/(<(b|i|u|span|strong|em)[^>]*>)(\s+)(<\/\2>)/g, '$1&nbsp;$4')
+
+
+    //     //         .replace(/<p>(.*?)<\/p>/g, (match, content) => {
+    //     //             return `<p>${content.replace(/\s/g, '&nbsp;')}</p>`;
+    //     //         });
+    //     //     // console.log(cleanedText, "cleanedText");
+    //     //     setText(cleanedText);
+
+    //     //     paginateText(cleanedText);
+    //     //     // saveDraftToBrowser(cleanedText);
+    //     //     handleTyping(cleanedText);
+    //     // },
+    //     onUpdate: ({ editor }) => {
+    //         const previousPos = editor.state.selection.anchor; // Save cursor position
+
+    //         let updatedHTML = editor.getHTML();
+    //         let cleanedText = updatedHTML
+    //             .replace(/&nbsp;/g, ' ')
+    //             .replace(/<br\s*\/?>/g, '<br> ')
+    //             .replace(/<u>(\s+)<\/u>/g, '$1')
+    //             .replace(/(<(b|i|u|span|strong|em)[^>]*>)(\s+)(<\/\2>)/g, '$1&nbsp;$4')
+    //             .replace(/<p>(.*?)<\/p>/g, (match, content) => {
+    //                 return `<p>${content.replace(/\s/g, '&nbsp;')}</p>`;
+    //             });
+
+    //         // setText(cleanedText); // Update the text state
+
+    //         // setTimeout(() => {
+    //         //     editor.commands.setTextSelection(previousPos); // Restore cursor position
+    //         // }, 0);
+
+    //         // Only update state if content has changed
+    //         if (cleanedText !== text) {
+    //             setText(cleanedText);
+
+    //             setTimeout(() => {
+    //                 editor.commands.setTextSelection(previousPos); // Restore cursor position
+    //             }, 0);
+    //         }
+
+    //         paginateText(cleanedText);
+    //         handleTyping(cleanedText);
+    //     }
+
+
+    // });
 
     useEffect(() => {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -825,24 +863,67 @@ const Editor = () => {
             recognitionInstance.onresult = (event) => {
                 const latestResult = event.results[event.results.length - 1];
                 if (latestResult.isFinal) {
-                    const transcript = latestResult[0].transcript.trim();
+                    let transcript = latestResult[0].transcript.trim(); // Trim extra spaces
+
                     if (editor) {
                         editor.commands.focus();
-                        editor.commands.insertContent(transcript + '\n');
+
+                        // Get the last inserted text node
+                        const currentContent = editor.getHTML();
+
+                        // Extract the last visible character (ignoring HTML tags)
+                        const plainText = editor.getText().trim();
+                        const lastChar = plainText.slice(-1);
+
+                        // Define a regex to check if last character is a Hindi or English letter
+                        const letterRegex = /[\p{L}\p{N}]/u;
+
+                        // If last character is a letter, insert space before new speech text
+                        if (letterRegex.test(lastChar)) {
+                            editor.commands.insertContent(" " + transcript);
+                        } else {
+                            editor.commands.insertContent(transcript);
+                        }
                     }
                 }
             };
             setRecognition(recognitionInstance);
         } else {
-            alert('Speech recognition is not supported in this browser.');
+            alert("Speech recognition is not supported in this browser.");
         }
     }, [language, editor]);
+
+
+    // useEffect(() => {
+    //     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    //     if (SpeechRecognition) {
+    //         const recognitionInstance = new SpeechRecognition();
+    //         recognitionInstance.continuous = true;
+    //         recognitionInstance.lang = language;
+    //         recognitionInstance.onresult = (event) => {
+    //             const latestResult = event.results[event.results.length - 1];
+    //             if (latestResult.isFinal) {
+    //                 const transcript = latestResult[0].transcript.trim();
+    //                 if (editor) {
+    //                     editor.commands.focus();
+    //                     editor.commands.insertContent(transcript + '\n');
+    //                 }
+    //             }
+    //         };
+    //         setRecognition(recognitionInstance);
+    //     } else {
+    //         alert('Speech recognition is not supported in this browser.');
+    //     }
+    // }, [language, editor]);
+
     const handleAddParagraph = () => editor?.commands.insertContent("<br><br>");
+
     const handlePageSizeChange = (e) => {
         const newSize = e.target.value;
         setSelectedSize(newSize);
         setPageSize(pageSizes[newSize]);
     };
+
     const startVoiceTyping = () => {
         if (recognition) {
             recognition.start();
@@ -863,7 +944,7 @@ const Editor = () => {
 
         setIsVerified(verified);
     }, []);
-    console.log(isVerified, "isVerifiedisVerifiedv");
+
     // download in pdf
     const downloadPDF = async () => {
         if (!isVerified) {
@@ -898,6 +979,14 @@ const Editor = () => {
         }
 
         doc.save("document.pdf");
+
+        // ✅ Clear the editor content after saving
+        // ✅ Show confirmation before clearing the editor
+        const confirmClear = window.confirm("Do you want to clear the text for new typing?");
+        if (confirmClear) {
+            setText(""); // Clear text state
+            editor?.commands.setContent(""); // Clear TipTap editor content
+        }
     };
 
 
@@ -938,10 +1027,120 @@ const Editor = () => {
         link.download = fileName || "document.doc"; // Save as .doc
         link.click();
         URL.revokeObjectURL(url);
+
+        // ✅ Clear the editor content after saving
+        // ✅ Show confirmation before clearing the editor
+        const confirmClear = window.confirm("Do you want to clear the text for new typing?");
+        if (confirmClear) {
+            setText(""); // Clear text state
+            editor?.commands.setContent(""); // Clear TipTap editor content
+        }
     };
 
+    const [fileContent, setFileContent] = useState("");
+    // const handleFileUpload = (event) => {
+    //     const file = event.target.files[0];
+    //     if (file) {
+    //         setFileName(file.name);
+    //         const reader = new FileReader();
+    //         reader.onload = (e) => {
+    //             const content = e.target.result;
+    //             setFileContent(content);
+
+    //             // Ensure editor is initialized before setting content
+    //             if (editor) {
+    //                 editor.commands.setContent(content);
+    //             } else {
+    //                 console.warn("Editor is not ready yet.");
+    //             }
+    //         };
+    //         reader.readAsText(file);
+    //     }
+    // };
+    const handleFileUpload = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            setFileName(file.name);
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const content = e.target.result;
+                setFileContent(content);
+
+                if (editor) {
+                    editor.commands.setContent(content, false); // Use 'false' to avoid resetting history
+                } else {
+                    console.warn("Editor is not ready yet.");
+                }
+            };
+            reader.readAsText(file);
+        }
+    };
 
     //   save in draft
+    // const saveDraftToBrowser = (textContent) => {
+    //     const plainText = textContent
+    //         .replace(/<\/?strong>/g, "") // Remove <strong> tags
+    //         .replace(/<\/?b>/g, "") // Remove <b> tags
+    //         .replace(/<\/?u>/g, "") // Remove <u> tags
+    //         .replace(/<\/?i>/g, "") // Remove <i> tags
+    //         .replace(/<\/?em>/g, "") // Remove <em> tags
+    //         .replace(/<\/?p>/g, "\n") // Convert <p> to new lines
+    //         .replace(/<\/?br>/g, "\n") // Convert <br> to new lines
+    //         .replace(/&nbsp;/g, " ") // Convert HTML spaces to normal spaces
+    //         .trim(); // Remove extra spaces
+
+    //     localStorage.setItem("draftText", plainText);
+    // };
+
+
+    // // download draft
+    // const downloadDraftFile = () => {
+    //     const text = localStorage.getItem("draftText") || ""; // Get saved text
+
+    //     if (!text.trim()) {
+    //         alert("No text to save! Please type something first.");
+    //         return;
+    //     }
+
+    //     const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+    //     const url = URL.createObjectURL(blob);
+    //     const a = document.createElement("a");
+    //     a.href = url;
+    //     a.download = "browser_draft.txt";
+    //     document.body.appendChild(a);
+    //     a.click();
+    //     document.body.removeChild(a);
+    //     URL.revokeObjectURL(url);
+    // };
+
+
+    // //   save in draft
+    // useEffect(() => {
+    //     const savedDraft = localStorage.getItem("draftText");
+    //     if (savedDraft && !isDraftRestored) {
+    //         setText(savedDraft);
+    //         editor?.commands.setContent(savedDraft);
+    //         setIsDraftRestored(true);
+    //     }
+    // }, [editor, isDraftRestored]);
+
+
+
+
+
+    const [isTyping, setIsTyping] = useState(false);
+
+    // Detect typing activity in the editor
+    const handleTyping = (textContent) => {
+        setIsTyping(true);
+        console.log("Typing detected, setting isTyping to true"); // Meaningful log
+        console.log(textContent, "TypingtextContenttextContenttextContent detected, setting isTyping to true"); // Meaningful log
+
+        localStorage.setItem("isTyping", "true");
+        saveDraftToBrowser(textContent); // Save the draft while typing
+    };
+
+    // Save in draft (updated)
     const saveDraftToBrowser = (textContent) => {
         const plainText = textContent
             .replace(/<\/?strong>/g, "") // Remove <strong> tags
@@ -956,7 +1155,8 @@ const Editor = () => {
 
         localStorage.setItem("draftText", plainText);
     };
-    // download draft
+
+    // Download draft (same as before)
     const downloadDraftFile = () => {
         const text = localStorage.getItem("draftText") || ""; // Get saved text
 
@@ -976,22 +1176,32 @@ const Editor = () => {
         URL.revokeObjectURL(url);
     };
 
-
-    //   save in draft
+    // Restore draft on page load
     useEffect(() => {
         const savedDraft = localStorage.getItem("draftText");
+        const savedTypingState = localStorage.getItem("isTyping");
+
         if (savedDraft && !isDraftRestored) {
             setText(savedDraft);
             editor?.commands.setContent(savedDraft);
             setIsDraftRestored(true);
         }
+
+        // If user refreshes or closes browser, reset typing state
+        if (!savedTypingState) {
+            setIsTyping(false);
+        }
+
+        // Clear typing state on refresh
+        const handleBeforeUnload = () => {
+            localStorage.removeItem("isTyping");
+        };
+
+        window.addEventListener("beforeunload", handleBeforeUnload);
+        return () => {
+            window.removeEventListener("beforeunload", handleBeforeUnload);
+        };
     }, [editor, isDraftRestored]);
-
-
-
-
-
-
 
 
     const fontSizes = [8, 10, 12, 14, 16, 18, 20, 24, 28, 32, 34];
@@ -1054,6 +1264,19 @@ const Editor = () => {
         }
     };
 
+    const printRef = useRef();
+
+    const handlePrint = () => {
+        const printContent = printRef.current;
+        const newWindow = window.open("", "_blank");
+        newWindow.document.write("<html><head><title>Print</title>");
+        newWindow.document.write("</head><body>");
+        newWindow.document.write(printContent.innerHTML);
+        newWindow.document.write("</body></html>");
+        newWindow.document.close();
+        newWindow.print();
+    };
+
 
     const paginateText = (text) => {
         const lineHeight = fontSize * 1.2; // Approximate line height
@@ -1111,7 +1334,46 @@ const Editor = () => {
     //     // user can't  end copy text
 
 
+    // Handle Template Selection
+    const [selectedTemplate, setSelectedTemplate] = useState("");
 
+
+
+    const handleTemplateSelect = (templateKey) => {
+        if (!editor) return;
+
+        const previousPos = editor.state.selection.anchor; // Save cursor position
+
+        editor.commands.insertContentAt(previousPos, templates[templateKey]); // Insert at cursor
+
+        setTimeout(() => {
+            editor.commands.setTextSelection(previousPos); // Restore cursor
+        }, 0);
+
+        setSelectedTemplate(templateKey);
+    };
+    // const handleTemplateSelect = (templateKey) => {
+    //     if (!editor) return;
+
+    //     const selection = editor.state.selection; // Save cursor position
+
+    //     editor.chain().focus().insertContentAt(selection.anchor, templates[templateKey]).run(); // Insert at cursor
+
+    //     setTimeout(() => {
+    //         editor.commands.setTextSelection(selection); // Restore cursor position
+    //     }, 0);
+
+    //     setSelectedTemplate(templateKey);
+    // };
+
+
+    // ✅ Function to remove the selected template
+    const handleRemoveTemplate = () => {
+        if (!editor) return;
+
+        editor.commands.clearContent(); // Clear editor content
+        setSelectedTemplate(""); // Reset selected template
+    };
 
 
     if (!editor) {
@@ -1123,19 +1385,31 @@ const Editor = () => {
         <div className="flex flex-col h-screen">
             <Header isRecording={isRecording} startVoiceTyping={startVoiceTyping} stopVoiceTyping={stopVoiceTyping} downloadPDF={downloadPDF} saveToFile={saveToFile}
                 handleButtonClick={handleButtonClick}
+                fileName={fileName}
+                editor={editor}
+                templates={templates}
+                handleRemoveTemplate={handleRemoveTemplate}
+                handleTemplateSelect={handleTemplateSelect}
+                selectedTemplate={selectedTemplate}
+                handleFileUpload={handleFileUpload}
                 isDropdownVisible={isDropdownVisible}
+                handlePrint={handlePrint}
                 dropdownRef={dropdownRef} buttonRef={buttonRef} handleLanguageChange={handleLanguageChange} language={language}
                 languageOptions={languageOptions} handleFontChange={handleFontChange} fonts={fonts} selectedFont={selectedFont} />
             <div className="flex flex-1">
-                <Sidebar isLeftSidebarVisible={isLeftSidebarVisible}
+                <Sidebar
+                    isTyping={isTyping}
+                    isLeftSidebarVisible={isLeftSidebarVisible}
                     setIsLeftSidebarVisible={setIsLeftSidebarVisible} orientation={orientation}
                     setOrientation={setOrientation} selectedSize={selectedSize} handlePageSizeChange={handlePageSizeChange} margins={margins}
                     setMargins={setMargins} downloadDraftFile={downloadDraftFile} handleAddParagraph={handleAddParagraph} pageSizes={pageSizes}
                     saveDraftToBrowser={saveDraftToBrowser}
                 />
-                <div className="flex-1 p-4">
-                    <Toolbar executeCommand={executeCommand} fontSize={fontSize} handleFontSizeChange={handleFontSizeChange} fontSizes={fontSizes} editor={editor} />
-                    <EditorComponent editor={editor} paginatedPages={paginatedPages} pageSize={pageSize} fontSize={fontSize} selectedFont={selectedFont} margins={margins} />
+                <div className="flex-1 p-4 ">
+
+                    <Toolbar executeCommand={executeCommand} handleAddParagraph={handleAddParagraph} fontSize={fontSize} handleFontSizeChange={handleFontSizeChange} fontSizes={fontSizes} editor={editor} />
+                    <EditorComponent ref={printRef} editor={editor} paginatedPages={paginatedPages} pageSize={pageSize} fontSize={fontSize} selectedFont={selectedFont} margins={margins} />
+
                 </div>
             </div>
         </div>
@@ -1143,4 +1417,3 @@ const Editor = () => {
 };
 
 export default Editor;
-// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@

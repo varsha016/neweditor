@@ -5,6 +5,30 @@
 
 
 
+.ProseMirror {
+  white-space: pre-wrap;
+  /* Ensure that spaces and line breaks are respected */
+}
+
+.ProseMirror {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.editor-container p {
+  white-space: normal !important;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.editor-container {
+  width: 100%;
+  max-width: 100%;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+}
 
 /* :root {
   --background: #ffffff;
