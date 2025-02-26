@@ -94,7 +94,7 @@ import React, { useState } from "react";
 import { FaBold, FaItalic, FaUnderline, FaParagraph, FaPencilAlt } from "react-icons/fa";
 
 const Toolbar = ({ executeCommand, fontSize, handleFontSizeChange, fontSizes, editor, handleAddParagraph }) => {
-    const [isExpanded, setIsExpanded] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(true);
 
     const toggleToolbar = () => {
         setIsExpanded(!isExpanded);

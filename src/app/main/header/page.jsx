@@ -172,6 +172,8 @@ import {
     FaDownload,
     FaFile,
     FaRemoveFormat,
+    FaUpload,
+    FaEdit,
 } from "react-icons/fa";
 import { HiOutlineDocumentText } from "react-icons/hi";
 
@@ -198,7 +200,8 @@ const Header = ({
     handleFontChange,
     fonts,
     selectedFont,
-    editor
+    editor,
+    handleUpdateAndSave
 }) => {
     const fileInputRef = useRef(null);
 
@@ -214,7 +217,7 @@ const Header = ({
         <header className="flex flex-wrap items-center justify-between bg-black px-4 sm:px-6 py-3 shadow-lg">
             <h1 className="text-3xl sm:text-4xl font-bold flex items-center gap-2 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
                 <HiOutlineDocumentText className="text-gray-500 animate-pulse" />
-                Code Editor
+                Text Editor
             </h1>
 
             <div className="relative flex items-center gap-2 sm:gap-4">
@@ -349,6 +352,13 @@ const Header = ({
                                     >
                                         <FaRemoveFormat className="mr-2 inline" />
                                         Remove
+                                    </button>
+                                    <button
+                                        className="w-full text-left px-3 py-2 hover:bg-purple-500 focus:outline-none rounded-md"
+                                        onClick={handleUpdateAndSave}
+                                    >
+                                        <FaUpload className="mr-2 inline" />
+                                        Update
                                     </button>
                                 </div>
                             </div>

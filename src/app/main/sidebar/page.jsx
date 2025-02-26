@@ -14,7 +14,7 @@ const Sidebar = ({
     downloadDraftFile,
     handleAddParagraph,
     pageSizes,
-    isTyping
+    // isTyping
 }) => {
     const [clientMargins, setClientMargins] = useState(null);
 

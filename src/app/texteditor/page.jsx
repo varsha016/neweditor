@@ -696,7 +696,7 @@
 
 "use client"
 
-import React, { useState, useEffect, useRef, } from 'react';
+import React, { useState, useEffect, useRef, useLayoutEffect, } from 'react';
 
 import { HiOutlineDocumentText } from 'react-icons/hi';
 import { jsPDF } from 'jspdf';
@@ -709,7 +709,6 @@ import Italic from "@tiptap/extension-italic";
 import Underline from '@tiptap/extension-underline';
 import TextStyle from "@tiptap/extension-text-style"; // Required for font-size
 import useDisableCopy from '../hook/page';
-import { Text } from '@tiptap/extension-text'
 
 
 
@@ -720,6 +719,7 @@ import templates from '../main/templates';
 import EditorComponent from '../main/editorComponent/page';
 
 const languageOptions = [
+    { code: "en-IN", name: "English", fonts: ["Arial", "Times New Roman", "Calibri", "Verdana", "Georgia"] },
     { code: "hi-IN", name: "Hindi", fonts: ["Mangal", "Lohit Devanagari", "Noto Sans Devanagari", "Samyak Devanagari", "Kokila"] },
     { code: "mr-IN", name: "Marathi", fonts: ["Mangal", "Lohit Devanagari", "Noto Sans Devanagari", "Samyak Devanagari", "Shree Devanagari 714"] },
     { code: "bn-IN", name: "Bengali", fonts: ["SolaimanLipi", "Noto Sans Bengali", "Bangla Sangam MN", "Lohit Bengali", "Siyam Rupali"] },
@@ -754,6 +754,9 @@ const Editor = () => {
     const router = useRouter();
     const [text, setText] = useState('');
     const [language, setLanguage] = useState(languageOptions[0].code);
+    // const [language, setLanguage] = useState(() => {
+    //     return localStorage.getItem("selectedLanguage") || languageOptions[0].code;
+    // });
     const [orientation, setOrientation] = useState('portrait');
     const [pageSize, setPageSize] = useState({ width: 21.0, height: 29.7 });
     const [isRecording, setIsRecording] = useState(false);
@@ -778,16 +781,24 @@ const Editor = () => {
         }
     });
 
-
-
-
-    // Use useEffect to trigger functions when `text` updates
+    // ✅ Save user-typed text when it updates
     useEffect(() => {
         if (text) {
+            localStorage.setItem("userTypedText", text);
             paginateText(text);
             handleTyping(text);
         }
-    }, [text]); // Runs whenever `text` updat
+    }, [text]);
+
+
+    // // Use useEffect to trigger functions when `text` updates
+    // useEffect(() => {
+    //     if (text) {
+    //         paginateText(text);
+    //         handleTyping(text);
+    //     }
+
+    // }, [text]); // Runs whenever `text` updat
 
     // const editor = useEditor({
     //     extensions: [
@@ -894,29 +905,20 @@ const Editor = () => {
     }, [language, editor]);
 
 
-    // useEffect(() => {
-    //     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    //     if (SpeechRecognition) {
-    //         const recognitionInstance = new SpeechRecognition();
-    //         recognitionInstance.continuous = true;
-    //         recognitionInstance.lang = language;
-    //         recognitionInstance.onresult = (event) => {
-    //             const latestResult = event.results[event.results.length - 1];
-    //             if (latestResult.isFinal) {
-    //                 const transcript = latestResult[0].transcript.trim();
-    //                 if (editor) {
-    //                     editor.commands.focus();
-    //                     editor.commands.insertContent(transcript + '\n');
-    //                 }
-    //             }
-    //         };
-    //         setRecognition(recognitionInstance);
-    //     } else {
-    //         alert('Speech recognition is not supported in this browser.');
-    //     }
-    // }, [language, editor]);
 
-    const handleAddParagraph = () => editor?.commands.insertContent("<br><br>");
+
+    // const handleAddParagraph = () => editor?.commands.insertContent("<br><br>");
+    const handleAddParagraph = () => {
+        if (!editor) return;
+
+        // Insert a new paragraph with extra space
+        editor.commands.insertContent("<p style='margin-top: 10px;'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>");
+
+        // Move the cursor to the newly inserted paragraph
+        editor.commands.focus();
+        editor.commands.setTextSelection(editor.state.doc.content.size - 1);
+    };
+
 
     const handlePageSizeChange = (e) => {
         const newSize = e.target.value;
@@ -1130,17 +1132,16 @@ const Editor = () => {
 
     const [isTyping, setIsTyping] = useState(false);
 
-    // Detect typing activity in the editor
+    // // Detect typing activity in the editor
     const handleTyping = (textContent) => {
         setIsTyping(true);
-        console.log("Typing detected, setting isTyping to true"); // Meaningful log
-        console.log(textContent, "TypingtextContenttextContenttextContent detected, setting isTyping to true"); // Meaningful log
+
 
         localStorage.setItem("isTyping", "true");
         saveDraftToBrowser(textContent); // Save the draft while typing
     };
 
-    // Save in draft (updated)
+    // // Save in draft (updated)
     const saveDraftToBrowser = (textContent) => {
         const plainText = textContent
             .replace(/<\/?strong>/g, "") // Remove <strong> tags
@@ -1156,7 +1157,7 @@ const Editor = () => {
         localStorage.setItem("draftText", plainText);
     };
 
-    // Download draft (same as before)
+    // // Download draft (same as before)
     const downloadDraftFile = () => {
         const text = localStorage.getItem("draftText") || ""; // Get saved text
 
@@ -1234,17 +1235,72 @@ const Editor = () => {
     }, []);
 
     const handleButtonClick = () => setIsDropdownVisible((prev) => !prev);
+
+
+
+    // ✅ Use `useEffect` to ensure `localStorage` runs only on the client
+
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const storedLanguage = localStorage.getItem("selectedLanguage");
+            const storedFont = localStorage.getItem("selectedFont");
+
+            if (storedLanguage) {
+                setLanguage(storedLanguage);
+            }
+
+            if (storedFont) {
+                setSelectedFont(storedFont);
+            }
+        }
+    }, []);
+
+    useEffect(() => {
+        const selectedLanguageOption = languageOptions.find((option) => option.code === language);
+        if (selectedLanguageOption) {
+            setFonts(selectedLanguageOption.fonts);
+
+            // ✅ Get stored font from localStorage instead of resetting it
+            const storedFont = localStorage.getItem("selectedFont");
+
+            // ✅ Keep previously selected font if it exists in the new language, otherwise reset to first font
+            if (storedFont && selectedLanguageOption.fonts.includes(storedFont)) {
+                setSelectedFont(storedFont);
+            } else {
+                setSelectedFont(selectedLanguageOption.fonts[0]);
+                localStorage.setItem("selectedFont", selectedLanguageOption.fonts[0]); // ✅ Save new font
+            }
+        }
+    }, [language]);
+
     const handleLanguageChange = (e) => {
         const selectedLanguage = e.target.value;
         setLanguage(selectedLanguage);
+        localStorage.setItem("selectedLanguage", selectedLanguage);
+
         const selectedLanguageOption = languageOptions.find((option) => option.code === selectedLanguage);
         if (selectedLanguageOption) {
             setFonts(selectedLanguageOption.fonts);
-            setSelectedFont(selectedLanguageOption.fonts[0]);
+
+            // ✅ Keep previously selected font if it's available in the new language
+            const storedFont = localStorage.getItem("selectedFont");
+            if (storedFont && selectedLanguageOption.fonts.includes(storedFont)) {
+                setSelectedFont(storedFont);
+            } else {
+                setSelectedFont(selectedLanguageOption.fonts[0]);
+                localStorage.setItem("selectedFont", selectedLanguageOption.fonts[0]); // ✅ Save new font
+            }
         }
     };
 
-    const handleFontChange = (e) => setSelectedFont(e.target.value);
+    const handleFontChange = (e) => {
+        const selectedFont = e.target.value;
+        setSelectedFont(selectedFont);
+        localStorage.setItem("selectedFont", selectedFont); // ✅ Store font properly
+    };
+
+
+
     const executeCommand = (command) => {
 
         if (!editor) return;
@@ -1278,53 +1334,146 @@ const Editor = () => {
     };
 
 
+
+
+    // / Update only the last page instead of resetting all content
+
+    // const paginateText = (text) => {
+    //     const lineHeight = fontSize * 1.2;
+    //     const maxLinesPerPage = Math.floor((pageSize.height * 24.8) / lineHeight);
+    //     const maxCharsPerLine = Math.floor((pageSize.width * 37.8) / (fontSize * 0.5));
+
+    //     const words = text.split(" ");
+    //     let pages = [...paginatedPages]; // Preserve existing pages
+    //     if (!pages.length) pages.push(""); // Ensure at least one page exists
+
+    //     let currentPage = pages.length ? pages[pages.length - 1].split("\n") : [];
+    //     let line = currentPage.length ? currentPage[currentPage.length - 1] : "";
+
+    //     words.forEach((word) => {
+    //         if ((line.length + word.length + 1) <= maxCharsPerLine) {
+    //             line += (line ? " " : "") + word;
+    //         } else {
+    //             currentPage.push(line);
+    //             line = word;
+
+    //             if (currentPage.length >= maxLinesPerPage) {
+    //                 pages[pages.length - 1] = currentPage.join("\n");
+    //                 pages.push("");
+    //                 currentPage = [];
+    //             }
+    //         }
+    //     });
+
+    //     if (line.trim()) currentPage.push(line);
+    //     pages[pages.length - 1] = currentPage.join("\n");
+
+    //     setPaginatedPages(pages);
+    // };
+    // ***********************************
+    // const paginateText = (text) => {
+    //     const lineHeight = fontSize * 1.2; // Approximate line height
+    //     const maxLinesPerPage = Math.floor((pageSize.height * 24.8) / lineHeight); // Max lines per page
+    //     const maxCharsPerLine = Math.floor((pageSize.width * 37.8) / (fontSize * 0.5)); // Max characters per line
+
+    //     const words = text.split(" "); // Split text into words
+    //     let currentPage = []; // Holds lines for the current page
+    //     let pages = [...paginatedPages]; // Preserve existing pages
+    //     let line = ""; // Holds the current line
+    //     let lastPageIndex = pages.length - 1;
+
+    //     if (!pages.length) pages.push(""); // Ensure at least one page exists
+
+    //     words.forEach((word) => {
+    //         if ((line + word).length <= maxCharsPerLine) {
+    //             line += word + " "; // Add the word to the current line
+    //         } else {
+    //             currentPage.push(line.trim());
+    //             line = word + " "; // Start a new line
+
+    //             if (currentPage.length >= maxLinesPerPage) {
+    //                 pages[lastPageIndex] = currentPage.join("\n");
+    //                 pages.push(""); // Create a new empty page
+    //                 lastPageIndex++;
+    //                 currentPage = [];
+    //             }
+    //         }
+    //     });
+
+    //     if (line.trim()) currentPage.push(line.trim());
+
+    //     if (currentPage.length > 0) {
+    //         pages[lastPageIndex] = currentPage.join("\n");
+    //     }
+
+    //     setPaginatedPages(pages);
+    // };
+
+
+    // useEffect(() => {
+    //     if (editor && paginatedPages?.length) {
+    //         editor.commands.setContent(paginatedPages[paginatedPages.length - 1]);
+    //         console.log(paginatedPages[paginatedPages.length - 1], "paginatedPages!!!!");
+
+    //     }
+    // }, [paginatedPages, editor]);
+
     const paginateText = (text) => {
+        console.log("📌 PAGINATION STARTED with text:", text);
+
         const lineHeight = fontSize * 1.2; // Approximate line height
         const maxLinesPerPage = Math.floor((pageSize.height * 24.8) / lineHeight); // Max lines per page
         const maxCharsPerLine = Math.floor((pageSize.width * 37.8) / (fontSize * 0.5)); // Max characters per line
 
-        const words = text.split(" "); // Split text into words
-        let currentPage = []; // Holds lines for the current page
-        let pages = [...paginatedPages]; // Preserve existing pages
-        let line = ""; // Holds the current line
-        let lastPageIndex = pages.length - 1;
+        console.log("📌 Max Lines Per Page:", maxLinesPerPage || "Value Not Set");
+        console.log("📌 Max Chars Per Line:", maxCharsPerLine || "Value Not Set");
 
-        if (!pages.length) pages.push(""); // Ensure at least one page exists
+
+        let words = text.split(" ");
+        let pages = paginatedPages.length ? [...paginatedPages] : [""]; // Preserve existing pages
+        let currentPageIndex = pages.length - 1; // Always update last page
+        let currentPageLines = pages[currentPageIndex] ? pages[currentPageIndex].split("\n") : [];
+        let line = currentPageLines.pop() || ""; // Get the last line
+
+        console.log("📌 Current Pages Before Typing:", pages);
 
         words.forEach((word) => {
             if ((line + word).length <= maxCharsPerLine) {
-                line += word + " "; // Add the word to the current line
+                line += word + " ";
             } else {
-                currentPage.push(line.trim());
-                line = word + " "; // Start a new line
+                currentPageLines.push(line.trim());
+                line = word + " ";
 
-                if (currentPage.length >= maxLinesPerPage) {
-                    pages[lastPageIndex] = currentPage.join("\n");
+                if (currentPageLines.length >= maxLinesPerPage) {
+                    console.log("📌 Current Page FULL! Creating a new page...");
+
+                    pages[currentPageIndex] = currentPageLines.join("\n");
                     pages.push(""); // Create a new empty page
-                    lastPageIndex++;
-                    currentPage = [];
+                    currentPageIndex++;
+                    currentPageLines = [];
                 }
             }
         });
 
-        if (line.trim()) currentPage.push(line.trim());
+        if (line.trim()) currentPageLines.push(line.trim());
 
-        if (currentPage.length > 0) {
-            pages[lastPageIndex] = currentPage.join("\n");
-        }
+        pages[currentPageIndex] = currentPageLines.join("\n");
 
+        console.log("📌 Updated Pages After Typing:", pages);
         setPaginatedPages(pages);
-    };
 
-    // / Update only the last page instead of resetting all content
+    };
 
 
     useEffect(() => {
-        if (editor && paginatedPages?.length) {
+        if (editor && paginatedPages.length) {
+            console.log("📌 Updating TipTap Editor with last page content:", paginatedPages[paginatedPages.length - 1]);
+
             editor.commands.setContent(paginatedPages[paginatedPages.length - 1]);
         }
     }, [paginatedPages, editor]);
 
+    // ****************************
     const navigateToVerificationPage = () => router.push('/user');
 
     //     // user can't start copy text
@@ -1332,49 +1481,135 @@ const Editor = () => {
 
     useDisableCopy(isVerified);
     //     // user can't  end copy text
-
+    // ????????????????????????????
 
     // Handle Template Selection
     const [selectedTemplate, setSelectedTemplate] = useState("");
 
+    // ✅ Load saved content & template on mount
+    useEffect(() => {
+        if (typeof window !== "undefined" && editor) {
+            const savedText = localStorage.getItem("userTypedText");
+            const savedTemplate = localStorage.getItem("selectedTemplate");
+
+            if (savedText) {
+                editor.chain().focus().insertContent(savedText).run(); // Restore typed text
+            } else if (savedTemplate) {
+                editor.chain().focus().insertContent(savedTemplate).run(); // Restore template
+            }
+
+            setSelectedTemplate(localStorage.getItem("templateKey") || "");
+        }
+    }, [editor]);
 
 
+
+    // ✅ Handle template selection
     const handleTemplateSelect = (templateKey) => {
         if (!editor) return;
 
-        const previousPos = editor.state.selection.anchor; // Save cursor position
-
-        editor.commands.insertContentAt(previousPos, templates[templateKey]); // Insert at cursor
-
-        setTimeout(() => {
-            editor.commands.setTextSelection(previousPos); // Restore cursor
-        }, 0);
+        const templateContent = templates[templateKey];
+        editor.chain().focus().insertContent(templateContent).run();
 
         setSelectedTemplate(templateKey);
+        setText(templateContent); // Set text to maintain combined state
+
+        if (typeof window !== "undefined") {
+            localStorage.setItem("selectedTemplate", templateContent);
+            localStorage.setItem("templateKey", templateKey);
+            localStorage.setItem("userTypedText", templateContent); // Ensure template is also saved as text
+        }
     };
+
+    // ✅ Handle removing the template
+    const handleRemoveTemplate = () => {
+        if (!editor) return;
+
+        editor.commands.clearContent();
+        setSelectedTemplate("");
+        setText("");
+
+        if (typeof window !== "undefined") {
+            localStorage.removeItem("selectedTemplate");
+            localStorage.removeItem("templateKey");
+            localStorage.removeItem("userTypedText");
+        }
+    }
+
+    // ?????????????????????
     // const handleTemplateSelect = (templateKey) => {
     //     if (!editor) return;
 
-    //     const selection = editor.state.selection; // Save cursor position
+    //     editor.chain().focus().insertContent(templates[templateKey]).run();
 
-    //     editor.chain().focus().insertContentAt(selection.anchor, templates[templateKey]).run(); // Insert at cursor
+    //     setSelectedTemplate(templateKey);
+    // };
+    // const handleRemoveTemplate = () => {
+    //     if (!editor) return;
+
+    //     editor.commands.clearContent(); // Clear editor content
+    //     setSelectedTemplate(""); // Reset selected template
+    // };
+
+
+    // const handleTemplateSelect = (templateKey) => {
+    //     if (!editor) return;
+
+    //     const previousPos = editor.state.selection.anchor; // Save cursor position
+
+    //     editor.commands.insertContentAt(previousPos, templates[templateKey]); // Insert at cursor
 
     //     setTimeout(() => {
-    //         editor.commands.setTextSelection(selection); // Restore cursor position
+    //         editor.commands.setTextSelection(previousPos); // Restore cursor
     //     }, 0);
 
     //     setSelectedTemplate(templateKey);
     // };
 
 
-    // ✅ Function to remove the selected template
-    const handleRemoveTemplate = () => {
-        if (!editor) return;
 
-        editor.commands.clearContent(); // Clear editor content
-        setSelectedTemplate(""); // Reset selected template
+    // ✅ Function to remove the selected template
+
+
+
+
+    const handleUpdateAndSave = async () => {
+        if (!editor) {
+            alert("Editor is not initialized.");
+            return;
+        }
+
+        const updatedContent = editor.getHTML(); // Get TipTap content (HTML)
+        console.log("Updated Content:", updatedContent); // Debugging
+
+        // Wrap content in a basic DOCX-compatible structure
+        const docContent = `<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                body { font-family: Arial, sans-serif; font-size: 14px; }
+                h3 { font-size: 16px; font-weight: bold; }
+                strong { font-weight: bold; }
+                em { font-style: italic; }
+                u { text-decoration: underline; }
+            </style>
+        </head>
+        <body>
+            ${updatedContent}
+        </body>
+        </html>`;
+
+        // Convert HTML to a Word document (.docx)
+        const converted = htmlDocx.asBlob(docContent);
+
+        // Save the .docx file
+        saveAs(converted, "updated-document.docx");
     };
 
+
+
+    console.log(editor, 'editoreditoreditoreditor');
 
     if (!editor) {
         return <p>Loading editor...</p>;
@@ -1387,6 +1622,7 @@ const Editor = () => {
                 handleButtonClick={handleButtonClick}
                 fileName={fileName}
                 editor={editor}
+                handleUpdateAndSave={handleUpdateAndSave}
                 templates={templates}
                 handleRemoveTemplate={handleRemoveTemplate}
                 handleTemplateSelect={handleTemplateSelect}
@@ -1399,16 +1635,52 @@ const Editor = () => {
             <div className="flex flex-1">
                 <Sidebar
                     isTyping={isTyping}
+                    // saveDraftToBrowser={saveDraftToBrowser}
+                    // downloadDraftFile={downloadDraftFile}
                     isLeftSidebarVisible={isLeftSidebarVisible}
                     setIsLeftSidebarVisible={setIsLeftSidebarVisible} orientation={orientation}
                     setOrientation={setOrientation} selectedSize={selectedSize} handlePageSizeChange={handlePageSizeChange} margins={margins}
-                    setMargins={setMargins} downloadDraftFile={downloadDraftFile} handleAddParagraph={handleAddParagraph} pageSizes={pageSizes}
-                    saveDraftToBrowser={saveDraftToBrowser}
+                    setMargins={setMargins} handleAddParagraph={handleAddParagraph} pageSizes={pageSizes}
+
                 />
                 <div className="flex-1 p-4 ">
 
                     <Toolbar executeCommand={executeCommand} handleAddParagraph={handleAddParagraph} fontSize={fontSize} handleFontSizeChange={handleFontSizeChange} fontSizes={fontSizes} editor={editor} />
                     <EditorComponent ref={printRef} editor={editor} paginatedPages={paginatedPages} pageSize={pageSize} fontSize={fontSize} selectedFont={selectedFont} margins={margins} />
+
+                    {/* <div className="editor-container flex flex-wrap justify-center p-4">
+                        <div ref={ref} id="printable-content">
+                            {paginatedPages?.map((pageContent, index) => (
+                                <div
+                                    key={index}
+                                    className="editor-page bg-white border shadow-lg mb-4 p-6 rounded-lg relative flex"
+                                    style={{
+                                        width: `${pageSize.width}cm`,
+                                        height: `${pageSize.height}cm`,
+                                        fontSize: `${fontSize}px`,
+                                        fontFamily: selectedFont,
+                                        padding: `${margins.top}cm ${margins.right}cm ${margins.bottom}cm ${margins.left}cm`,
+                                        overflow: "hidden",
+                                        pageBreakAfter: "always",
+                                    }}
+                                >
+                                    <div className="flex-1">
+                                        <span className="absolute top-1 right-1 text-gray-400">
+                                            Page {index + 1}
+                                        </span>
+
+                                        {index === paginatedPages.length - 1 ? (
+                                            <EditorContent editor={editor} />
+                                        ) : (
+                                            // <p className="whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: pageContent }}></p>
+                                            <p className="whitespace-pre-wrap">{pageContent} </p>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                    </div> */}
 
                 </div>
             </div>
