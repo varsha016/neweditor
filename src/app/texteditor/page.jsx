@@ -791,7 +791,7 @@ const Editor = () => {
     }, [text]);
 
 
-    // // Use useEffect to trigger functions when `text` updates
+    // Use useEffect to trigger functions when `text` updates
     // useEffect(() => {
     //     if (text) {
     //         paginateText(text);
@@ -907,7 +907,7 @@ const Editor = () => {
 
 
 
-    // const handleAddParagraph = () => editor?.commands.insertContent("<br><br>");
+
     const handleAddParagraph = () => {
         if (!editor) return;
 
@@ -1040,25 +1040,7 @@ const Editor = () => {
     };
 
     const [fileContent, setFileContent] = useState("");
-    // const handleFileUpload = (event) => {
-    //     const file = event.target.files[0];
-    //     if (file) {
-    //         setFileName(file.name);
-    //         const reader = new FileReader();
-    //         reader.onload = (e) => {
-    //             const content = e.target.result;
-    //             setFileContent(content);
 
-    //             // Ensure editor is initialized before setting content
-    //             if (editor) {
-    //                 editor.commands.setContent(content);
-    //             } else {
-    //                 console.warn("Editor is not ready yet.");
-    //             }
-    //         };
-    //         reader.readAsText(file);
-    //     }
-    // };
     const handleFileUpload = (event) => {
         const file = event.target.files[0];
         if (file) {
@@ -1078,53 +1060,7 @@ const Editor = () => {
         }
     };
 
-    //   save in draft
-    // const saveDraftToBrowser = (textContent) => {
-    //     const plainText = textContent
-    //         .replace(/<\/?strong>/g, "") // Remove <strong> tags
-    //         .replace(/<\/?b>/g, "") // Remove <b> tags
-    //         .replace(/<\/?u>/g, "") // Remove <u> tags
-    //         .replace(/<\/?i>/g, "") // Remove <i> tags
-    //         .replace(/<\/?em>/g, "") // Remove <em> tags
-    //         .replace(/<\/?p>/g, "\n") // Convert <p> to new lines
-    //         .replace(/<\/?br>/g, "\n") // Convert <br> to new lines
-    //         .replace(/&nbsp;/g, " ") // Convert HTML spaces to normal spaces
-    //         .trim(); // Remove extra spaces
 
-    //     localStorage.setItem("draftText", plainText);
-    // };
-
-
-    // // download draft
-    // const downloadDraftFile = () => {
-    //     const text = localStorage.getItem("draftText") || ""; // Get saved text
-
-    //     if (!text.trim()) {
-    //         alert("No text to save! Please type something first.");
-    //         return;
-    //     }
-
-    //     const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-    //     const url = URL.createObjectURL(blob);
-    //     const a = document.createElement("a");
-    //     a.href = url;
-    //     a.download = "browser_draft.txt";
-    //     document.body.appendChild(a);
-    //     a.click();
-    //     document.body.removeChild(a);
-    //     URL.revokeObjectURL(url);
-    // };
-
-
-    // //   save in draft
-    // useEffect(() => {
-    //     const savedDraft = localStorage.getItem("draftText");
-    //     if (savedDraft && !isDraftRestored) {
-    //         setText(savedDraft);
-    //         editor?.commands.setContent(savedDraft);
-    //         setIsDraftRestored(true);
-    //     }
-    // }, [editor, isDraftRestored]);
 
 
 
@@ -1157,52 +1093,7 @@ const Editor = () => {
         localStorage.setItem("draftText", plainText);
     };
 
-    // // Download draft (same as before)
-    const downloadDraftFile = () => {
-        const text = localStorage.getItem("draftText") || ""; // Get saved text
 
-        if (!text.trim()) {
-            alert("No text to save! Please type something first.");
-            return;
-        }
-
-        const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "browser_draft.txt";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    };
-
-    // Restore draft on page load
-    useEffect(() => {
-        const savedDraft = localStorage.getItem("draftText");
-        const savedTypingState = localStorage.getItem("isTyping");
-
-        if (savedDraft && !isDraftRestored) {
-            setText(savedDraft);
-            editor?.commands.setContent(savedDraft);
-            setIsDraftRestored(true);
-        }
-
-        // If user refreshes or closes browser, reset typing state
-        if (!savedTypingState) {
-            setIsTyping(false);
-        }
-
-        // Clear typing state on refresh
-        const handleBeforeUnload = () => {
-            localStorage.removeItem("isTyping");
-        };
-
-        window.addEventListener("beforeunload", handleBeforeUnload);
-        return () => {
-            window.removeEventListener("beforeunload", handleBeforeUnload);
-        };
-    }, [editor, isDraftRestored]);
 
 
     const fontSizes = [8, 10, 12, 14, 16, 18, 20, 24, 28, 32, 34];
@@ -1334,7 +1225,43 @@ const Editor = () => {
     };
 
 
+    const paginateText = (text) => {
+        const lineHeight = fontSize * 1.2; // Approximate line height
+        const maxLinesPerPage = Math.floor((pageSize.height * 24.8) / lineHeight); // Max lines per page
+        const maxCharsPerLine = Math.floor((pageSize.width * 37.8) / (fontSize * 0.5)); // Max characters per line
 
+        const words = text.split(" "); // Split text into words
+        let currentPage = []; // Holds lines for the current page
+        let pages = [...paginatedPages]; // Preserve existing pages
+        let line = ""; // Holds the current line
+        let lastPageIndex = pages.length - 1;
+
+        if (!pages.length) pages.push(""); // Ensure at least one page exists
+
+        words.forEach((word) => {
+            if ((line + word).length <= maxCharsPerLine) {
+                line += word + " "; // Add the word to the current line
+            } else {
+                currentPage.push(line.trim());
+                line = word + " "; // Start a new line
+
+                if (currentPage.length >= maxLinesPerPage) {
+                    pages[lastPageIndex] = currentPage.join("\n");
+                    pages.push(""); // Create a new empty page
+                    lastPageIndex++;
+                    currentPage = [];
+                }
+            }
+        });
+
+        if (line.trim()) currentPage.push(line.trim());
+
+        if (currentPage.length > 0) {
+            pages[lastPageIndex] = currentPage.join("\n");
+        }
+
+        setPaginatedPages(pages);
+    };
 
     // / Update only the last page instead of resetting all content
 
@@ -1370,123 +1297,32 @@ const Editor = () => {
 
     //     setPaginatedPages(pages);
     // };
-    // ***********************************
-    // const paginateText = (text) => {
-    //     const lineHeight = fontSize * 1.2; // Approximate line height
-    //     const maxLinesPerPage = Math.floor((pageSize.height * 24.8) / lineHeight); // Max lines per page
-    //     const maxCharsPerLine = Math.floor((pageSize.width * 37.8) / (fontSize * 0.5)); // Max characters per line
-
-    //     const words = text.split(" "); // Split text into words
-    //     let currentPage = []; // Holds lines for the current page
-    //     let pages = [...paginatedPages]; // Preserve existing pages
-    //     let line = ""; // Holds the current line
-    //     let lastPageIndex = pages.length - 1;
-
-    //     if (!pages.length) pages.push(""); // Ensure at least one page exists
-
-    //     words.forEach((word) => {
-    //         if ((line + word).length <= maxCharsPerLine) {
-    //             line += word + " "; // Add the word to the current line
-    //         } else {
-    //             currentPage.push(line.trim());
-    //             line = word + " "; // Start a new line
-
-    //             if (currentPage.length >= maxLinesPerPage) {
-    //                 pages[lastPageIndex] = currentPage.join("\n");
-    //                 pages.push(""); // Create a new empty page
-    //                 lastPageIndex++;
-    //                 currentPage = [];
-    //             }
-    //         }
-    //     });
-
-    //     if (line.trim()) currentPage.push(line.trim());
-
-    //     if (currentPage.length > 0) {
-    //         pages[lastPageIndex] = currentPage.join("\n");
-    //     }
-
-    //     setPaginatedPages(pages);
-    // };
 
 
-    // useEffect(() => {
-    //     if (editor && paginatedPages?.length) {
-    //         editor.commands.setContent(paginatedPages[paginatedPages.length - 1]);
-    //         console.log(paginatedPages[paginatedPages.length - 1], "paginatedPages!!!!");
-
-    //     }
-    // }, [paginatedPages, editor]);
-
-    const paginateText = (text) => {
-        console.log("📌 PAGINATION STARTED with text:", text);
-
-        const lineHeight = fontSize * 1.2; // Approximate line height
-        const maxLinesPerPage = Math.floor((pageSize.height * 24.8) / lineHeight); // Max lines per page
-        const maxCharsPerLine = Math.floor((pageSize.width * 37.8) / (fontSize * 0.5)); // Max characters per line
-
-        console.log("📌 Max Lines Per Page:", maxLinesPerPage || "Value Not Set");
-        console.log("📌 Max Chars Per Line:", maxCharsPerLine || "Value Not Set");
-
-
-        let words = text.split(" ");
-        let pages = paginatedPages.length ? [...paginatedPages] : [""]; // Preserve existing pages
-        let currentPageIndex = pages.length - 1; // Always update last page
-        let currentPageLines = pages[currentPageIndex] ? pages[currentPageIndex].split("\n") : [];
-        let line = currentPageLines.pop() || ""; // Get the last line
-
-        console.log("📌 Current Pages Before Typing:", pages);
-
-        words.forEach((word) => {
-            if ((line + word).length <= maxCharsPerLine) {
-                line += word + " ";
-            } else {
-                currentPageLines.push(line.trim());
-                line = word + " ";
-
-                if (currentPageLines.length >= maxLinesPerPage) {
-                    console.log("📌 Current Page FULL! Creating a new page...");
-
-                    pages[currentPageIndex] = currentPageLines.join("\n");
-                    pages.push(""); // Create a new empty page
-                    currentPageIndex++;
-                    currentPageLines = [];
-                }
-            }
-        });
-
-        if (line.trim()) currentPageLines.push(line.trim());
-
-        pages[currentPageIndex] = currentPageLines.join("\n");
-
-        console.log("📌 Updated Pages After Typing:", pages);
-        setPaginatedPages(pages);
-
-    };
 
 
     useEffect(() => {
-        if (editor && paginatedPages.length) {
-            console.log("📌 Updating TipTap Editor with last page content:", paginatedPages[paginatedPages.length - 1]);
-
+        if (editor && paginatedPages?.length) {
             editor.commands.setContent(paginatedPages[paginatedPages.length - 1]);
+            console.log(paginatedPages[paginatedPages.length - 1], "paginatedPages!!!!");
+
         }
     }, [paginatedPages, editor]);
 
-    // ****************************
     const navigateToVerificationPage = () => router.push('/user');
 
     //     // user can't start copy text
 
 
     useDisableCopy(isVerified);
-    //     // user can't  end copy text
-    // ????????????????????????????
 
-    // Handle Template Selection
+
+
+
+    // ?????????????????????????????????????????????????????
     const [selectedTemplate, setSelectedTemplate] = useState("");
-
     // ✅ Load saved content & template on mount
+
     useEffect(() => {
         if (typeof window !== "undefined" && editor) {
             const savedText = localStorage.getItem("userTypedText");
@@ -1534,41 +1370,10 @@ const Editor = () => {
             localStorage.removeItem("templateKey");
             localStorage.removeItem("userTypedText");
         }
-    }
-
-    // ?????????????????????
-    // const handleTemplateSelect = (templateKey) => {
-    //     if (!editor) return;
-
-    //     editor.chain().focus().insertContent(templates[templateKey]).run();
-
-    //     setSelectedTemplate(templateKey);
-    // };
-    // const handleRemoveTemplate = () => {
-    //     if (!editor) return;
-
-    //     editor.commands.clearContent(); // Clear editor content
-    //     setSelectedTemplate(""); // Reset selected template
-    // };
+    };
+    // ?????????????????????????????????????????????????????
 
 
-    // const handleTemplateSelect = (templateKey) => {
-    //     if (!editor) return;
-
-    //     const previousPos = editor.state.selection.anchor; // Save cursor position
-
-    //     editor.commands.insertContentAt(previousPos, templates[templateKey]); // Insert at cursor
-
-    //     setTimeout(() => {
-    //         editor.commands.setTextSelection(previousPos); // Restore cursor
-    //     }, 0);
-
-    //     setSelectedTemplate(templateKey);
-    // };
-
-
-
-    // ✅ Function to remove the selected template
 
 
 
@@ -1609,7 +1414,6 @@ const Editor = () => {
 
 
 
-    console.log(editor, 'editoreditoreditoreditor');
 
     if (!editor) {
         return <p>Loading editor...</p>;
