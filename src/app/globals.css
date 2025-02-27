@@ -30,6 +30,12 @@
   white-space: pre-wrap;
 }
 
+/* .editor-page {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+} */
+
 /* :root {
   --background: #ffffff;
   --foreground: #171717;

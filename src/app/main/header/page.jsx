@@ -201,7 +201,7 @@ const Header = ({
     fonts,
     selectedFont,
     editor,
-    handleUpdateAndSave
+    // handleUpdateAndSave
 }) => {
     const fileInputRef = useRef(null);
 
@@ -212,6 +212,7 @@ const Header = ({
     useEffect(() => {
         console.log(selectedTemplate, "Updated selectedTemplate");
     }, [selectedTemplate]);
+
 
     return (
         <header className="flex flex-wrap items-center justify-between bg-black px-4 sm:px-6 py-3 shadow-lg">
@@ -346,6 +347,13 @@ const Header = ({
                                         className="hidden"
                                         onChange={handleFileUpload}
                                     />
+                                    {/* <button
+                                        className="w-full text-left px-3 py-2 hover:bg-purple-500 focus:outline-none rounded-md"
+                                        onClick={handleUpdateAndSave}
+                                    >
+                                        <FaUpload className="mr-2 inline" />
+                                        Update
+                                    </button> */}
                                     <button
                                         className="w-full text-left px-3 py-2 hover:bg-purple-500 focus:outline-none rounded-md"
                                         onClick={handleRemoveTemplate}
@@ -353,13 +361,7 @@ const Header = ({
                                         <FaRemoveFormat className="mr-2 inline" />
                                         Remove
                                     </button>
-                                    <button
-                                        className="w-full text-left px-3 py-2 hover:bg-purple-500 focus:outline-none rounded-md"
-                                        onClick={handleUpdateAndSave}
-                                    >
-                                        <FaUpload className="mr-2 inline" />
-                                        Update
-                                    </button>
+
                                 </div>
                             </div>
                         </div>

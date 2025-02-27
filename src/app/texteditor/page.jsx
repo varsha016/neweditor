@@ -774,14 +774,23 @@ const Editor = () => {
 
 
     const editor = useEditor({
-        extensions: [StarterKit, Underline, TextStyle,],
+        extensions: [StarterKit, Underline, TextStyle],
         content: text,
         onUpdate: ({ editor }) => {
-            setText(editor.getHTML());
-        }
+            const newHTML = editor.getHTML();
+            if (newHTML !== text) {
+                const previousPos = editor.state.selection.anchor; // Cursor position save karne ka
+                setText(newHTML);
+
+                setTimeout(() => {
+                    editor.commands.setTextSelection(previousPos); // Cursor wapas laane ka
+                }, 0);
+            }
+        },
     });
 
-    // ✅ Save user-typed text when it updates
+
+
     useEffect(() => {
         if (text) {
             localStorage.setItem("userTypedText", text);
@@ -789,6 +798,23 @@ const Editor = () => {
             handleTyping(text);
         }
     }, [text]);
+
+    // const editor = useEditor({
+    //     extensions: [StarterKit, Underline, TextStyle,],
+    //     content: text,
+    //     onUpdate: ({ editor }) => {
+    //         setText(editor.getHTML());
+    //     }
+
+
+    // });
+
+
+
+
+
+    // ✅ Save user-typed text when it updates
+
 
 
     // Use useEffect to trigger functions when `text` updates
@@ -1040,31 +1066,65 @@ const Editor = () => {
     };
 
     const [fileContent, setFileContent] = useState("");
+    const handleFileUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
 
-    const handleFileUpload = (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            setFileName(file.name);
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const content = e.target.result;
-                setFileContent(content);
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const fileContent = event.target.result;
 
+            setText(fileContent); // Set content in state
+
+            setTimeout(() => {
                 if (editor) {
-                    editor.commands.setContent(content, false); // Use 'false' to avoid resetting history
-                } else {
-                    console.warn("Editor is not ready yet.");
+                    editor.commands.setContent(fileContent, false);
+                    editor.commands.setTextSelection(0); // Cursor always at top
                 }
-            };
-            reader.readAsText(file);
-        }
+            }, 0);
+        };
+        reader.readAsText(file);
     };
+    // useEffect(() => {
+    //     if (editor && text) {
+    //         const { anchor } = editor.state.selection; // Cursor Position Save
+    //         editor.commands.setContent(text, false);
+
+    //         setTimeout(() => {
+    //             if (editor) {
+    //                 editor.commands.setTextSelection(anchor); // Cursor Restore Magic
+    //             }
+    //         }, 0);
+    //     }
+    // }, [text]);
+    // useEffect(() => {
+    //     if (text) {
+    //         localStorage.setItem("userTypedText", text);
+    //     }
+    // }, [text]);
 
 
 
 
 
+    // const handleFileUpload = (event) => {
+    //     const file = event.target.files[0];
+    //     if (file) {
+    //         setFileName(file.name);
+    //         const reader = new FileReader();
+    //         reader.onload = (e) => {
+    //             const content = e.target.result;
+    //             setFileContent(content);
 
+    //             if (editor) {
+    //                 editor.commands.setContent(content, false); // Use 'false' to avoid resetting history
+    //             } else {
+    //                 console.warn("Editor is not ready yet.");
+    //             }
+    //         };
+    //         reader.readAsText(file);
+    //     }
+    // };
 
     const [isTyping, setIsTyping] = useState(false);
 
@@ -1263,6 +1323,13 @@ const Editor = () => {
         setPaginatedPages(pages);
     };
 
+    useEffect(() => {
+        if (editor && paginatedPages?.length) {
+            editor.commands.setContent(paginatedPages[paginatedPages.length - 1]);
+            console.log(paginatedPages[paginatedPages.length - 1], "paginatedPages!!!!");
+
+        }
+    }, [paginatedPages, editor]);
     // / Update only the last page instead of resetting all content
 
     // const paginateText = (text) => {
@@ -1301,13 +1368,6 @@ const Editor = () => {
 
 
 
-    useEffect(() => {
-        if (editor && paginatedPages?.length) {
-            editor.commands.setContent(paginatedPages[paginatedPages.length - 1]);
-            console.log(paginatedPages[paginatedPages.length - 1], "paginatedPages!!!!");
-
-        }
-    }, [paginatedPages, editor]);
 
     const navigateToVerificationPage = () => router.push('/user');
 
@@ -1340,24 +1400,64 @@ const Editor = () => {
 
 
 
-    // ✅ Handle template selection
+    // // ✅ Handle template selection
+    // const handleTemplateSelect = (templateKey) => {
+    //     if (!editor) return;
+
+    //     const templateContent = templates[templateKey];
+    //     editor.chain().focus().insertContent(templateContent).run();
+
+    //     setSelectedTemplate(templateKey);
+    //     setText(templateContent); // Set text to maintain combined state
+
+    //     if (typeof window !== "undefined") {
+    //         localStorage.setItem("selectedTemplate", templateContent);
+    //         localStorage.setItem("templateKey", templateKey);
+    //         localStorage.setItem("userTypedText", templateContent); // Ensure template is also saved as text
+    //     }
+    // };
+
+
     const handleTemplateSelect = (templateKey) => {
         if (!editor) return;
 
         const templateContent = templates[templateKey];
-        editor.chain().focus().insertContent(templateContent).run();
+        const previousPos = editor.state.selection.anchor; // Cursor position before template insert
 
+        editor.commands.insertContentAt(previousPos, templateContent);
+        setText(editor.getHTML());
         setSelectedTemplate(templateKey);
-        setText(templateContent); // Set text to maintain combined state
 
-        if (typeof window !== "undefined") {
-            localStorage.setItem("selectedTemplate", templateContent);
-            localStorage.setItem("templateKey", templateKey);
-            localStorage.setItem("userTypedText", templateContent); // Ensure template is also saved as text
-        }
+        localStorage.setItem("selectedTemplate", templateContent);
+        localStorage.setItem("templateKey", templateKey);
+        localStorage.setItem("userTypedText", editor.getHTML());
+
+        setTimeout(() => {
+            editor.commands.setTextSelection(previousPos + templateContent.length); // Cursor ko exact position pe wapas laane ka
+        }, 0);
     };
 
-    // ✅ Handle removing the template
+    useEffect(() => {
+        if (editor) {
+            const savedText = localStorage.getItem("userTypedText");
+            if (savedText) {
+                editor.commands.setContent(savedText, false);
+            }
+        }
+    }, [editor]);
+
+    useEffect(() => {
+        if (text && editor) {
+            const previousPos = editor.state.selection.anchor;
+            editor.commands.setContent(text, false);
+
+            setTimeout(() => {
+                editor.commands.setTextSelection(previousPos);
+            }, 0);
+        }
+    }, [text]);
+
+    // // ✅ Handle removing the template
     const handleRemoveTemplate = () => {
         if (!editor) return;
 
@@ -1371,46 +1471,47 @@ const Editor = () => {
             localStorage.removeItem("userTypedText");
         }
     };
-    // ?????????????????????????????????????????????????????
 
 
 
 
 
 
-    const handleUpdateAndSave = async () => {
-        if (!editor) {
-            alert("Editor is not initialized.");
-            return;
-        }
 
-        const updatedContent = editor.getHTML(); // Get TipTap content (HTML)
-        console.log("Updated Content:", updatedContent); // Debugging
 
-        // Wrap content in a basic DOCX-compatible structure
-        const docContent = `<!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <style>
-                body { font-family: Arial, sans-serif; font-size: 14px; }
-                h3 { font-size: 16px; font-weight: bold; }
-                strong { font-weight: bold; }
-                em { font-style: italic; }
-                u { text-decoration: underline; }
-            </style>
-        </head>
-        <body>
-            ${updatedContent}
-        </body>
-        </html>`;
+    // const handleUpdateAndSave = async () => {
+    //     if (!editor) {
+    //         alert("Editor is not initialized.");
+    //         return;
+    //     }
 
-        // Convert HTML to a Word document (.docx)
-        const converted = htmlDocx.asBlob(docContent);
+    //     const updatedContent = editor.getHTML(); // Get TipTap content (HTML)
+    //     console.log("Updated Content:", updatedContent); // Debugging
 
-        // Save the .docx file
-        saveAs(converted, "updated-document.docx");
-    };
+    //     // Wrap content in a basic DOCX-compatible structure
+    //     const docContent = `<!DOCTYPE html>
+    //     <html>
+    //     <head>
+    //         <meta charset="UTF-8">
+    //         <style>
+    //             body { font-family: Arial, sans-serif; font-size: 14px; }
+    //             h3 { font-size: 16px; font-weight: bold; }
+    //             strong { font-weight: bold; }
+    //             em { font-style: italic; }
+    //             u { text-decoration: underline; }
+    //         </style>
+    //     </head>
+    //     <body>
+    //         ${updatedContent}
+    //     </body>
+    //     </html>`;
+
+    //     // Convert HTML to a Word document (.docx)
+    //     const converted = htmlDocx.asBlob(docContent);
+
+    //     // Save the .docx file
+    //     saveAs(converted, "updated-document.docx");
+    // };
 
 
 
@@ -1426,7 +1527,7 @@ const Editor = () => {
                 handleButtonClick={handleButtonClick}
                 fileName={fileName}
                 editor={editor}
-                handleUpdateAndSave={handleUpdateAndSave}
+                // handleUpdateAndSave={handleUpdateAndSave}
                 templates={templates}
                 handleRemoveTemplate={handleRemoveTemplate}
                 handleTemplateSelect={handleTemplateSelect}
@@ -1439,8 +1540,7 @@ const Editor = () => {
             <div className="flex flex-1">
                 <Sidebar
                     isTyping={isTyping}
-                    // saveDraftToBrowser={saveDraftToBrowser}
-                    // downloadDraftFile={downloadDraftFile}
+
                     isLeftSidebarVisible={isLeftSidebarVisible}
                     setIsLeftSidebarVisible={setIsLeftSidebarVisible} orientation={orientation}
                     setOrientation={setOrientation} selectedSize={selectedSize} handlePageSizeChange={handlePageSizeChange} margins={margins}
@@ -1452,39 +1552,7 @@ const Editor = () => {
                     <Toolbar executeCommand={executeCommand} handleAddParagraph={handleAddParagraph} fontSize={fontSize} handleFontSizeChange={handleFontSizeChange} fontSizes={fontSizes} editor={editor} />
                     <EditorComponent ref={printRef} editor={editor} paginatedPages={paginatedPages} pageSize={pageSize} fontSize={fontSize} selectedFont={selectedFont} margins={margins} />
 
-                    {/* <div className="editor-container flex flex-wrap justify-center p-4">
-                        <div ref={ref} id="printable-content">
-                            {paginatedPages?.map((pageContent, index) => (
-                                <div
-                                    key={index}
-                                    className="editor-page bg-white border shadow-lg mb-4 p-6 rounded-lg relative flex"
-                                    style={{
-                                        width: `${pageSize.width}cm`,
-                                        height: `${pageSize.height}cm`,
-                                        fontSize: `${fontSize}px`,
-                                        fontFamily: selectedFont,
-                                        padding: `${margins.top}cm ${margins.right}cm ${margins.bottom}cm ${margins.left}cm`,
-                                        overflow: "hidden",
-                                        pageBreakAfter: "always",
-                                    }}
-                                >
-                                    <div className="flex-1">
-                                        <span className="absolute top-1 right-1 text-gray-400">
-                                            Page {index + 1}
-                                        </span>
 
-                                        {index === paginatedPages.length - 1 ? (
-                                            <EditorContent editor={editor} />
-                                        ) : (
-                                            // <p className="whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: pageContent }}></p>
-                                            <p className="whitespace-pre-wrap">{pageContent} </p>
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-
-                    </div> */}
 
                 </div>
             </div>
