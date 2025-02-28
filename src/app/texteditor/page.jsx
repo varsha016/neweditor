@@ -754,9 +754,7 @@ const Editor = () => {
     const router = useRouter();
     const [text, setText] = useState('');
     const [language, setLanguage] = useState(languageOptions[0].code);
-    // const [language, setLanguage] = useState(() => {
-    //     return localStorage.getItem("selectedLanguage") || languageOptions[0].code;
-    // });
+
     const [orientation, setOrientation] = useState('portrait');
     const [pageSize, setPageSize] = useState({ width: 21.0, height: 29.7 });
     const [isRecording, setIsRecording] = useState(false);
@@ -799,97 +797,7 @@ const Editor = () => {
         }
     }, [text]);
 
-    // const editor = useEditor({
-    //     extensions: [StarterKit, Underline, TextStyle,],
-    //     content: text,
-    //     onUpdate: ({ editor }) => {
-    //         setText(editor.getHTML());
-    //     }
 
-
-    // });
-
-
-
-
-
-    // ✅ Save user-typed text when it updates
-
-
-
-    // Use useEffect to trigger functions when `text` updates
-    // useEffect(() => {
-    //     if (text) {
-    //         paginateText(text);
-    //         handleTyping(text);
-    //     }
-
-    // }, [text]); // Runs whenever `text` updat
-
-    // const editor = useEditor({
-    //     extensions: [
-    //         StarterKit.configure({ history: true }),
-    //         Bold,
-    //         Italic,
-    //         Underline,
-    //         TextStyle,
-    //     ],
-    //     content: text,
-    //     // onUpdate: ({ editor }) => {
-    //     //     let updatedHTML = editor.getHTML();
-
-    //     //     let cleanedText = updatedHTML
-
-    //     //         .replace(/&nbsp;/g, ' ')
-    //     //         .replace(/<br\s*\/?>/g, '<br> ')
-    //     //         .replace(/<u>(\s+)<\/u>/g, '$1')
-    //     //         .replace(/(<(b|i|u|span|strong|em)[^>]*>)(\s+)(<\/\2>)/g, '$1&nbsp;$4')
-
-
-    //     //         .replace(/<p>(.*?)<\/p>/g, (match, content) => {
-    //     //             return `<p>${content.replace(/\s/g, '&nbsp;')}</p>`;
-    //     //         });
-    //     //     // console.log(cleanedText, "cleanedText");
-    //     //     setText(cleanedText);
-
-    //     //     paginateText(cleanedText);
-    //     //     // saveDraftToBrowser(cleanedText);
-    //     //     handleTyping(cleanedText);
-    //     // },
-    //     onUpdate: ({ editor }) => {
-    //         const previousPos = editor.state.selection.anchor; // Save cursor position
-
-    //         let updatedHTML = editor.getHTML();
-    //         let cleanedText = updatedHTML
-    //             .replace(/&nbsp;/g, ' ')
-    //             .replace(/<br\s*\/?>/g, '<br> ')
-    //             .replace(/<u>(\s+)<\/u>/g, '$1')
-    //             .replace(/(<(b|i|u|span|strong|em)[^>]*>)(\s+)(<\/\2>)/g, '$1&nbsp;$4')
-    //             .replace(/<p>(.*?)<\/p>/g, (match, content) => {
-    //                 return `<p>${content.replace(/\s/g, '&nbsp;')}</p>`;
-    //             });
-
-    //         // setText(cleanedText); // Update the text state
-
-    //         // setTimeout(() => {
-    //         //     editor.commands.setTextSelection(previousPos); // Restore cursor position
-    //         // }, 0);
-
-    //         // Only update state if content has changed
-    //         if (cleanedText !== text) {
-    //             setText(cleanedText);
-
-    //             setTimeout(() => {
-    //                 editor.commands.setTextSelection(previousPos); // Restore cursor position
-    //             }, 0);
-    //         }
-
-    //         paginateText(cleanedText);
-    //         handleTyping(cleanedText);
-    //     }
-
-
-    // });
 
     useEffect(() => {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -932,18 +840,33 @@ const Editor = () => {
 
 
 
-
+    const [paragraphCount, setParagraphCount] = useState(1);
 
     const handleAddParagraph = () => {
         if (!editor) return;
 
-        // Insert a new paragraph with extra space
-        editor.commands.insertContent("<p style='margin-top: 10px;'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>");
+        // Insert a numbered paragraph with continuous numbering
+        const content = `<p style='margin-top: 0px;'>${paragraphCount}. &nbsp;&nbsp;&nbsp;&nbsp;</p>`;
+        editor.commands.insertContent(content);
 
-        // Move the cursor to the newly inserted paragraph
+        // Move cursor to the newly inserted paragraph
         editor.commands.focus();
         editor.commands.setTextSelection(editor.state.doc.content.size - 1);
+
+        // Increment paragraph count
+        setParagraphCount(paragraphCount + 1);
     };
+
+    // const handleAddParagraph = () => {
+    //     if (!editor) return;
+
+    //     // Insert a new paragraph with extra space
+    //     editor.commands.insertContent("<p style='margin-top: 0px;'>&nbsp;&nbsp;&nbsp;&nbsp;</p>");
+
+    //     // Move the cursor to the newly inserted paragraph
+    //     editor.commands.focus();
+    //     editor.commands.setTextSelection(editor.state.doc.content.size - 1);
+    // };
 
 
     const handlePageSizeChange = (e) => {
@@ -1085,46 +1008,12 @@ const Editor = () => {
         };
         reader.readAsText(file);
     };
-    // useEffect(() => {
-    //     if (editor && text) {
-    //         const { anchor } = editor.state.selection; // Cursor Position Save
-    //         editor.commands.setContent(text, false);
-
-    //         setTimeout(() => {
-    //             if (editor) {
-    //                 editor.commands.setTextSelection(anchor); // Cursor Restore Magic
-    //             }
-    //         }, 0);
-    //     }
-    // }, [text]);
-    // useEffect(() => {
-    //     if (text) {
-    //         localStorage.setItem("userTypedText", text);
-    //     }
-    // }, [text]);
 
 
 
 
 
-    // const handleFileUpload = (event) => {
-    //     const file = event.target.files[0];
-    //     if (file) {
-    //         setFileName(file.name);
-    //         const reader = new FileReader();
-    //         reader.onload = (e) => {
-    //             const content = e.target.result;
-    //             setFileContent(content);
 
-    //             if (editor) {
-    //                 editor.commands.setContent(content, false); // Use 'false' to avoid resetting history
-    //             } else {
-    //                 console.warn("Editor is not ready yet.");
-    //             }
-    //         };
-    //         reader.readAsText(file);
-    //     }
-    // };
 
     const [isTyping, setIsTyping] = useState(false);
 
@@ -1273,112 +1162,72 @@ const Editor = () => {
 
     const printRef = useRef();
 
+    // const handlePrint = () => {
+    //     const printContent = printRef.current;
+    //     const newWindow = window.open("", "_blank");
+    //     newWindow.document.write("<html><head><title>Print</title>");
+    //     newWindow.document.write("</head><body>");
+    //     newWindow.document.write(printContent.innerHTML);
+    //     newWindow.document.write("</body></html>");
+    //     newWindow.document.close();
+    //     newWindow.print();
+    // };
     const handlePrint = () => {
-        const printContent = printRef.current;
-        const newWindow = window.open("", "_blank");
-        newWindow.document.write("<html><head><title>Print</title>");
-        newWindow.document.write("</head><body>");
-        newWindow.document.write(printContent.innerHTML);
-        newWindow.document.write("</body></html>");
-        newWindow.document.close();
-        newWindow.print();
+        const content = printRef.current;
+        const originalContent = document.body.innerHTML;
+
+        // Replace body content with the content to print
+        document.body.innerHTML = content.innerHTML;
+        window.print();
+
+        // Restore the original content after printing
+        document.body.innerHTML = originalContent;
+        window.location.reload(); // Optional: Reload page to restore event listeners
     };
 
 
     const paginateText = (text) => {
         const lineHeight = fontSize * 1.2; // Approximate line height
-        const maxLinesPerPage = Math.floor((pageSize.height * 24.8) / lineHeight); // Max lines per page
-        const maxCharsPerLine = Math.floor((pageSize.width * 37.8) / (fontSize * 0.5)); // Max characters per line
+        const maxLinesPerPage = Math.floor((pageSize.height * 37.8) / lineHeight); // Max lines per page
+        const maxCharsPerLine = Math.floor((pageSize.width * 37.8) / (fontSize * 0.6)); // Max characters per line
 
         const words = text.split(" "); // Split text into words
         let currentPage = []; // Holds lines for the current page
-        let pages = [...paginatedPages]; // Preserve existing pages
+        let pages = []; // Holds all pages
         let line = ""; // Holds the current line
-        let lastPageIndex = pages.length - 1;
-
-        if (!pages.length) pages.push(""); // Ensure at least one page exists
 
         words.forEach((word) => {
             if ((line + word).length <= maxCharsPerLine) {
                 line += word + " "; // Add the word to the current line
             } else {
-                currentPage.push(line.trim());
+                currentPage.push(line.trim()); // Add the completed line to the current page
                 line = word + " "; // Start a new line
 
                 if (currentPage.length >= maxLinesPerPage) {
-                    pages[lastPageIndex] = currentPage.join("\n");
-                    pages.push(""); // Create a new empty page
-                    lastPageIndex++;
-                    currentPage = [];
+                    pages.push(currentPage.join("\n")); // Add the current page to pages
+                    currentPage = []; // Reset the current page
                 }
             }
         });
 
-        if (line.trim()) currentPage.push(line.trim());
+        if (line.trim()) currentPage.push(line.trim()); // Add the last line
+        if (currentPage.length > 0) pages.push(currentPage.join("\n")); // Add the last page
 
-        if (currentPage.length > 0) {
-            pages[lastPageIndex] = currentPage.join("\n");
-        }
-
-        setPaginatedPages(pages);
+        setPaginatedPages(pages); // Update the paginated pages state
     };
 
+    // Update the editor's content when paginatedPages changes
     useEffect(() => {
-        if (editor && paginatedPages?.length) {
+        if (editor && paginatedPages.length) {
             editor.commands.setContent(paginatedPages[paginatedPages.length - 1]);
-            console.log(paginatedPages[paginatedPages.length - 1], "paginatedPages!!!!");
-
         }
     }, [paginatedPages, editor]);
-    // / Update only the last page instead of resetting all content
-
-    // const paginateText = (text) => {
-    //     const lineHeight = fontSize * 1.2;
-    //     const maxLinesPerPage = Math.floor((pageSize.height * 24.8) / lineHeight);
-    //     const maxCharsPerLine = Math.floor((pageSize.width * 37.8) / (fontSize * 0.5));
-
-    //     const words = text.split(" ");
-    //     let pages = [...paginatedPages]; // Preserve existing pages
-    //     if (!pages.length) pages.push(""); // Ensure at least one page exists
-
-    //     let currentPage = pages.length ? pages[pages.length - 1].split("\n") : [];
-    //     let line = currentPage.length ? currentPage[currentPage.length - 1] : "";
-
-    //     words.forEach((word) => {
-    //         if ((line.length + word.length + 1) <= maxCharsPerLine) {
-    //             line += (line ? " " : "") + word;
-    //         } else {
-    //             currentPage.push(line);
-    //             line = word;
-
-    //             if (currentPage.length >= maxLinesPerPage) {
-    //                 pages[pages.length - 1] = currentPage.join("\n");
-    //                 pages.push("");
-    //                 currentPage = [];
-    //             }
-    //         }
-    //     });
-
-    //     if (line.trim()) currentPage.push(line);
-    //     pages[pages.length - 1] = currentPage.join("\n");
-
-    //     setPaginatedPages(pages);
-    // };
-
-
-
 
 
     const navigateToVerificationPage = () => router.push('/user');
 
     //     // user can't start copy text
-
-
     useDisableCopy(isVerified);
-
-
-
-
     // ?????????????????????????????????????????????????????
     const [selectedTemplate, setSelectedTemplate] = useState("");
     // ✅ Load saved content & template on mount
@@ -1400,22 +1249,6 @@ const Editor = () => {
 
 
 
-    // // ✅ Handle template selection
-    // const handleTemplateSelect = (templateKey) => {
-    //     if (!editor) return;
-
-    //     const templateContent = templates[templateKey];
-    //     editor.chain().focus().insertContent(templateContent).run();
-
-    //     setSelectedTemplate(templateKey);
-    //     setText(templateContent); // Set text to maintain combined state
-
-    //     if (typeof window !== "undefined") {
-    //         localStorage.setItem("selectedTemplate", templateContent);
-    //         localStorage.setItem("templateKey", templateKey);
-    //         localStorage.setItem("userTypedText", templateContent); // Ensure template is also saved as text
-    //     }
-    // };
 
 
     const handleTemplateSelect = (templateKey) => {
@@ -1476,42 +1309,6 @@ const Editor = () => {
 
 
 
-
-
-
-    // const handleUpdateAndSave = async () => {
-    //     if (!editor) {
-    //         alert("Editor is not initialized.");
-    //         return;
-    //     }
-
-    //     const updatedContent = editor.getHTML(); // Get TipTap content (HTML)
-    //     console.log("Updated Content:", updatedContent); // Debugging
-
-    //     // Wrap content in a basic DOCX-compatible structure
-    //     const docContent = `<!DOCTYPE html>
-    //     <html>
-    //     <head>
-    //         <meta charset="UTF-8">
-    //         <style>
-    //             body { font-family: Arial, sans-serif; font-size: 14px; }
-    //             h3 { font-size: 16px; font-weight: bold; }
-    //             strong { font-weight: bold; }
-    //             em { font-style: italic; }
-    //             u { text-decoration: underline; }
-    //         </style>
-    //     </head>
-    //     <body>
-    //         ${updatedContent}
-    //     </body>
-    //     </html>`;
-
-    //     // Convert HTML to a Word document (.docx)
-    //     const converted = htmlDocx.asBlob(docContent);
-
-    //     // Save the .docx file
-    //     saveAs(converted, "updated-document.docx");
-    // };
 
 
 

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import { FaArrowLeft, FaBackspace, FaBackward } from "react-icons/fa";
 
 export default function VerifyCode() {
     const [email, setEmail] = useState("");
@@ -32,6 +33,16 @@ export default function VerifyCode() {
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-900">
             <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
+                <div className="flex justify-start">
+                    <button
+                        onClick={() => router.back()}
+                        className="w-10 h-10 flex items-center justify-center rounded-full font-bold text-gray-600 bg-blue-300 hover:bg-blue-400 transition-colors hover:text-white"
+                    >
+                        {/* Back */}
+                        <FaArrowLeft />
+                    </button>
+                </div>
+
                 <h2 className="text-3xl font-semibold text-center text-gray-700 mb-6">Verify Your Code</h2>
                 <div className="space-y-4">
                     <input
@@ -57,9 +68,7 @@ export default function VerifyCode() {
                     </button>
 
                 </div>
-                <div className="mt-6 text-center">
-                    <p className="text-gray-600">Don't have an account? </p>
-                </div>
+
             </div>
         </div>
     );
