@@ -296,7 +296,7 @@
 //         }
 
 //         const formattedText = paginatedPages
-//             .map((page, index) => `--- Page ${index + 1} ---\n${page}`)
+//             ?.map((page, index) => `--- Page ${index + 1} ---\n${page}`)
 //             .join("\n\n");
 
 //         const blob = new Blob([formattedText], { type: "text/plain" });
@@ -411,7 +411,7 @@
 //                                             onChange={handleLanguageChange}
 //                                             className="border px-2 py-1 text-gray-700 w-full"
 //                                         >
-//                                             {languageOptions.map((option) => (
+//                                             {languageOptions?.map((option) => (
 //                                                 <option key={option.code} value={option.code}>
 //                                                     {option.name}
 //                                                 </option>
@@ -429,7 +429,7 @@
 //                                             onChange={handleFontChange}
 //                                             className="border px-2 py-1 text-gray-700 w-full"
 //                                         >
-//                                             {fonts.map((font) => (
+//                                             {fonts?.map((font) => (
 //                                                 <option key={font} value={font}>
 //                                                     {font}
 //                                                 </option>
@@ -509,7 +509,7 @@
 //                                 onChange={handlePageSizeChange}
 //                                 className="p-2 border rounded-md w-full"
 //                             >
-//                                 {Object.keys(pageSizes).map((size) => (
+//                                 {Object.keys(pageSizes)?.map((size) => (
 //                                     <option key={size} value={size}>
 //                                         {size}
 //                                     </option>
@@ -521,7 +521,7 @@
 //                     <div className="mb-4">
 //                         <label className="block text-gray-200 font-medium text-lg">Margins (cm):</label>
 //                         <div className="flex flex-col gap-2">
-//                             {["top", "bottom", "left", "right"].map((side) => (
+//                             {["top", "bottom", "left", "right"]?.map((side) => (
 //                                 <div key={side} className="flex justify-between">
 //                                     <label className="text-gray-200 capitalize">{side}:</label>
 //                                     <input
@@ -581,7 +581,7 @@
 //                                 onChange={handleFontSizeChange}
 //                                 className="px-4 py-2 border rounded-md"
 //                             >
-//                                 {fontSizes.map((size) => (
+//                                 {fontSizes?.map((size) => (
 
 //                                     <option key={size} value={size}>
 //                                         {size}px
@@ -605,7 +605,7 @@
 
 //                         {/*
 //                         <div className="editor-container flex flex-wrap justify-center p-4">
-//                             {paginatedPages.map((pageContent, index) => (
+//                             {paginatedPages?.map((pageContent, index) => (
 //                                 <div
 //                                     key={index}
 //                                     className="editor-page bg-white border shadow-lg mb-4 p-6 rounded-lg relative"
@@ -632,7 +632,7 @@
 //                         </div> */}
 
 //                         <div className="editor-container flex flex-wrap justify-center p-4">
-//                             {paginatedPages.map((pageContent, index) => (
+//                             {paginatedPages?.map((pageContent, index) => (
 //                                 <div
 //                                     key={index}
 //                                     className="editor-page bg-white border shadow-lg mb-4 p-6 rounded-lg relative flex"
@@ -648,7 +648,7 @@
 //                                 >
 //                                     {/* Line Numbers */}
 //                                     {/* <div className=" p-2 text-right w-10">
-//                                         {lines.map((_, lineIndex) => (
+//                                         {lines?.map((_, lineIndex) => (
 //                                             <div key={lineIndex} className="text-gray-800">
 //                                                 {lineIndex + 1}
 //                                             </div>
@@ -1085,7 +1085,7 @@ const Editor = () => {
 
         // Wrap content in minimal HTML structure for Word
         const formattedText = paginatedPages
-            .map((page, index) => `<h3>Page ${index + 1}</h3><p>${page}</p>`)
+            ?.map((page, index) => `<h3>Page ${index + 1}</h3><p>${page}</p>`)
             .join("<br/><br/>");
 
         const htmlContent = `<!DOCTYPE html>
@@ -1424,7 +1424,7 @@ export default Editor;
 const ThumbnailSidebar = ({ paginatedPages, onPageClick }) => {
     return (
         <div className="thumbnail-sidebar">
-            {paginatedPages.map((page, index) => (
+            {paginatedPages?.map((page, index) => (
                 <div
                     key={index}
                     className="thumbnail"
