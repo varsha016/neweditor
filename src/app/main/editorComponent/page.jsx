@@ -123,7 +123,7 @@ const EditorComponent = forwardRef(
         return (<>
             <div className="flex flex-col items-center">
                 <div ref={ref} id="printable-content">
-                    {paginatedPages.map((pageContent, index) => (
+                    {paginatedPages?.map((pageContent, index) => (
                         <div
                             key={index}
                             ref={(el) => (pageRef.current[index] = el)}

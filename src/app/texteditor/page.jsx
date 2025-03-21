@@ -1421,18 +1421,18 @@ const Editor = () => {
 export default Editor;
 
 
-const ThumbnailSidebar = ({ paginatedPages, onPageClick }) => {
-    return (
-        <div className="thumbnail-sidebar">
-            {paginatedPages?.map((page, index) => (
-                <div
-                    key={index}
-                    className="thumbnail"
-                    onClick={() => onPageClick(index)}
-                >
-                    Page {index + 1}
-                </div>
-            ))}
-        </div>
-    );
-};
+// const ThumbnailSidebar = ({ paginatedPages, onPageClick }) => {
+//     return (
+//         <div className="thumbnail-sidebar">
+//             {paginatedPages?.map((page, index) => (
+//                 <div
+//                     key={index}
+//                     className="thumbnail"
+//                     onClick={() => onPageClick(index)}
+//                 >
+//                     Page {index + 1}
+//                 </div>
+//             ))}
+//         </div>
+//     );
+// };

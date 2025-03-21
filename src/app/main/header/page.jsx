@@ -284,7 +284,7 @@ const Header = ({
                                         className="p-2 border rounded-md text-gray-700 w-full"
                                     >
                                         <option value="">Select a Template</option>
-                                        {Object.keys(templates).map((key) => (
+                                        {Object.keys(templates)?.map((key) => (
                                             <option key={key} value={key}>
                                                 {key}
                                             </option>

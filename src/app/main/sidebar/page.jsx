@@ -76,7 +76,7 @@ const Sidebar = ({
             <div className="mb-4">
                 <label className="block text-gray-200 font-medium text-lg">Margins (cm):</label>
                 <div className="flex flex-col gap-2">
-                    {["top", "bottom", "left", "right"].map((side) => (
+                    {["top", "bottom", "left", "right"]?.map((side) => (
                         <div key={side} className="flex justify-between">
                             <label className="text-gray-200 capitalize">{side}:</label>
                             <input
