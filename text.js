@@ -699,8 +699,7 @@
 import React, { useState, useEffect, useRef, useLayoutEffect, } from 'react';
 
 import { HiOutlineDocumentText } from 'react-icons/hi';
-// import { jsPDF } from 'jspdf';
-import jsPDF from "jspdf";
+import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useRouter } from 'next/navigation';
 import { useEditor, EditorContent } from '@tiptap/react';
@@ -771,14 +770,173 @@ const Editor = () => {
     const [selectedFont, setSelectedFont] = useState(fonts[0]);
     const [isLeftSidebarVisible, setIsLeftSidebarVisible] = useState(true);
 
-    const fontSizes = [8, 10, 12, 14, 16, 18, 20, 24, 28, 32, 34];
-    const [fontSize, setFontSize] = useState(fontSizes[16]); // Default font size
+
+    // const editor = useEditor({
+    //     extensions: [StarterKit, Underline, TextStyle],
+    //     content: text,
+    //     onUpdate: ({ editor }) => {
+    //         const newHTML = editor.getHTML();
+    //         if (newHTML !== text) {
+    //             const previousPos = editor.state.selection.anchor; // Cursor position save karne ka
+    //             setText(newHTML);
+
+    //             setTimeout(() => {
+    //                 editor.commands.setTextSelection(previousPos); // Cursor wapas laane ka
+    //             }, 0);
+    //         }
+    //     },
+    // });
 
 
-    const dropdownRef = useRef(null);
-    const buttonRef = useRef(null);
+
 
     const printRef = useRef();
+    const editor = useEditor({
+        extensions: [StarterKit, Underline, TextStyle],
+        content: text,
+        onUpdate: ({ editor }) => {
+            const newHTML = editor.getHTML();
+            if (newHTML !== text) {
+                const previousPos = editor.state.selection.anchor; // Save cursor position
+                setText(newHTML); // Update the text state
+                paginateText(newHTML); // Paginate the text dynamically
+
+                // Restore cursor position after state and pagination updates
+                setTimeout(() => {
+                    editor.commands.setTextSelection(previousPos); // Restore cursor position
+                }, 0);
+            }
+        },
+    });
+    const pageRef = useRef([]);
+
+    useEffect(() => {
+        if (editor) {
+            paginateText(editor.getHTML());
+        }
+    }, [editor, editor?.getHTML()]);
+
+    const paginateText = (content) => {
+        const pageHeight = 1000; // Example page height
+        const container = document.createElement("div");
+        container.style.width = `${pageSize.width}cm`;
+        container.style.fontSize = `${fontSize}px`;
+        container.style.fontFamily = selectedFont;
+        container.style.padding = `${margins.top}cm ${margins.right}cm ${margins.bottom}cm ${margins.left}cm`;
+        container.style.visibility = "hidden";
+        container.style.position = "absolute";
+        container.style.whiteSpace = "pre-wrap"; // Important for text wrapping
+        container.style.lineHeight = "1.5";
+        document.body.appendChild(container);
+
+        let newPages = [];
+        let remainingText = content;
+
+        while (remainingText.length > 0) {
+            container.innerHTML = remainingText;
+
+            // If whole content fits into the page
+            if (container.scrollHeight <= pageHeight) {
+                newPages.push(remainingText);
+                break;
+            }
+
+            let low = 0;
+            let high = remainingText.length;
+            let splitIndex = 0;
+
+            // Binary search to find the maximum content that fits
+            while (low <= high) {
+                let mid = Math.floor((low + high) / 2);
+                container.innerHTML = remainingText.substring(0, mid);
+
+                if (container.scrollHeight <= pageHeight) {
+                    splitIndex = mid;
+                    low = mid + 1;
+                } else {
+                    high = mid - 1;
+                }
+            }
+
+            // If no split was found (edge case)
+            if (splitIndex === 0) {
+                console.error("Content too large to fit into one page");
+                break;
+            }
+
+            // Add the split content to the page list
+            newPages.push(remainingText.substring(0, splitIndex));
+
+            // Reduce the remaining text correctly
+            remainingText = remainingText.substring(splitIndex).trim(); // Trim to avoid extra spaces
+        }
+
+        setPaginatedPages(newPages);
+        document.body.removeChild(container);
+    };
+
+
+
+
+
+
+
+
+
+    // const paginateText = (text) => {
+    //     const pageHeight = pageSize.height * 37.8; // Convert cm to pixels
+    //     const tempPages = [];
+    //     let currentPage = "";
+
+    //     const container = document.createElement("div");
+    //     container.style.fontSize = `${fontSize}px`;
+    //     container.style.width = `${pageSize.width}cm`;
+    //     container.style.padding = `${margins.top}cm ${margins.right}cm ${margins.bottom}cm ${margins.left}cm`;
+    //     container.style.position = "absolute";
+    //     container.style.visibility = "hidden";
+    //     container.style.whiteSpace = "pre-wrap";
+    //     container.style.lineHeight = "1.5"; // Optional: Adjust line height
+    //     document.body.appendChild(container);
+
+    //     const lines = text.split("\n");
+
+    //     lines.forEach((line) => {
+    //         const testPage = currentPage + line + "\n";
+    //         container.innerHTML = testPage;
+
+    //         if (container.scrollHeight > pageHeight) {
+    //             tempPages.push(currentPage); // Save full page
+    //             currentPage = line + "\n"; // Start new page with current line
+    //         } else {
+    //             currentPage = testPage; // Add line to current page
+    //         }
+    //     });
+
+    //     if (currentPage.trim() !== "") {
+    //         tempPages.push(currentPage); // Save remaining content
+    //     }
+
+    //     document.body.removeChild(container);
+    //     setPaginatedPages(tempPages);
+
+    //     // setTimeout(() => {
+    //     //     const lastPage = printRef.current?.[tempPages.length - 1];
+    //     //     if (lastPage) {
+    //     //         lastPage.scrollIntoView({ behavior: "smooth", block: "end" });
+    //     //     }
+    //     //     editor?.commands.focus("end"); // Focus the cursor at the end of text
+    //     // }, 100);
+    // };
+
+
+
+    // const handleTyping = (textContent) => {
+    //     setIsTyping(true);
+
+
+    //     localStorage.setItem("isTyping", "true");
+    //     saveDraftToBrowser(textContent); // Save the draft while typing
+    // }
 
     // const editor = useEditor({
     //     extensions: [StarterKit, Underline, TextStyle],
@@ -787,9 +945,8 @@ const Editor = () => {
     //         const newHTML = editor.getHTML();
     //         if (newHTML !== text) {
     //             const previousPos = editor.state.selection.anchor; // Save cursor position
-    //             setText(newHTML); // Update the text state
+    //             setText(newHTML);
 
-    //             // Restore cursor position after state and pagination updates
     //             setTimeout(() => {
     //                 editor.commands.setTextSelection(previousPos); // Restore cursor position
     //             }, 0);
@@ -797,168 +954,19 @@ const Editor = () => {
     //     },
     // });
 
-    const pageRef = useRef([]);
+    // useEffect(() => {
+    //     if (editor) {
+    //         paginateText(editor.getHTML());
+    //     }
+    // }, [editor]);
 
-    const [currentPageIndex, setCurrentPageIndex] = useState(0);
-    const isUpdating = useRef(false); // Track content updates
-
-    const editor = useEditor({
-        extensions: [StarterKit, Underline, TextStyle],
-        content: paginatedPages[currentPageIndex],
-        onUpdate: ({ editor }) => {
-            if (!isUpdating.current) {
-                updatePagination(editor.getHTML());
-                setTimeout(checkOverflow, 100); // Small delay to avoid flickering
-            }
-        },
-    });
-
-    useEffect(() => {
-        if (editor) {
-            checkOverflow();
-        }
-    }, [paginatedPages, currentPageIndex]);
-
-    const checkOverflow = () => {
-        const page = pageRef.current[currentPageIndex];
-        const maxHeight = pageSize.height * 37.8; // Convert cm to px
-
-        if (!page || isUpdating.current) return;
-
-        const content = editor.getHTML();
-        const words = content.split(" ");
-        let pageContent = "";
-        let overflowContent = "";
-
-        let testDiv = document.createElement("div");
-        testDiv.style.visibility = "hidden";
-        testDiv.style.position = "absolute";
-        testDiv.style.width = page.offsetWidth + "px";
-        testDiv.style.padding = page.style.padding;
-        testDiv.style.fontSize = `${fontSize}px`;
-        testDiv.style.lineHeight = "1.5";
-        document.body.appendChild(testDiv);
-
-        for (let word of words) {
-            testDiv.innerHTML = pageContent + word + " ";
-            if (testDiv.scrollHeight > maxHeight) {
-                overflowContent += word + " ";
-            } else {
-                pageContent += word + " ";
-            }
-        }
-
-        document.body.removeChild(testDiv);
-
-        if (overflowContent.trim()) {
-            isUpdating.current = true; // Set flag to avoid infinite loop
-
-            setPaginatedPages((prev) => {
-                const updatedPages = [...prev];
-                updatedPages[currentPageIndex] = pageContent.trim();
-                updatedPages.push(overflowContent.trim());
-                return updatedPages;
-            });
-
-            setTimeout(() => {
-                setCurrentPageIndex((prev) => prev + 1);
-                editor.commands.setContent(overflowContent.trim());
-                isUpdating.current = false; // Reset flag
-            }, 100);
-        }
-    };
-    useEffect(() => {
-        // Retrieve content from localStorage on component mount
-        const savedContent = localStorage.getItem("editorContent");
-        if (savedContent) {
-            setText(savedContent);
-            editor?.commands.setContent(savedContent);
-        }
-    }, []);
-
-    useEffect(() => {
-        // Save content to localStorage whenever text updates
-        if (text) {
-            localStorage.setItem("editorContent", text);
-        }
-    }, [text]);
-
-    const updatePagination = (content) => {
-        setPaginatedPages((prev) => {
-            const updatedPages = [...prev];
-            updatedPages[currentPageIndex] = content;
-            localStorage.setItem("editorContent", updatedPages.join(" "));
-            return updatedPages;
-        });
-    };
-
-    // const updatePagination = (content) => {
-    //     setPaginatedPages((prev) => {
-    //         const updatedPages = [...prev];
-    //         updatedPages[currentPageIndex] = content;
-    //         return updatedPages;
-    //     });
-    // };
-
-
-    // download in pdf
-    const downloadPDF = async () => {
-        if (!isVerified) {
-            alert("You must verify your email before downloading.");
-            navigateToVerificationPage();
-            return;
-        }
-
-        const doc = new jsPDF({
-            orientation: orientation,
-            unit: "cm",
-            format: [pageSize.width, pageSize.height],
-        });
-
-        try {
-            // Loop through each page and capture its content as an image
-            for (let i = 0; i < paginatedPages.length; i++) {
-                if (i > 0) doc.addPage(); // Add a new page for subsequent pages
-
-                // Select the page by using refs or class selector
-                const pageElement = pageRef.current[i];
-
-                if (pageElement) {
-                    // Ensure proper canvas scaling and cross-origin handling
-                    const canvas = await html2canvas(pageElement, {
-                        scale: 2, // High scale for better quality
-                        useCORS: true, // Allow cross-origin images
-                        logging: true,
-                    });
-
-                    const imgData = canvas.toDataURL("image/png");
-
-                    // Calculate image width and height based on PDF page size
-                    const imgWidth = pageSize.width - margins.left - margins.right;
-                    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-                    // Add image to PDF
-                    doc.addImage(imgData, "PNG", margins.left, margins.top, imgWidth, imgHeight);
-                    doc.text(`Page ${i + 1}`, pageSize.width - margins.right - 2, pageSize.height - margins.bottom);
-                }
-            }
-
-            // Save the PDF
-            doc.save("document.pdf");
-
-            // Clear content after download with confirmation
-            const confirmClear = window.confirm("Do you want to clear the text for new typing?");
-            if (confirmClear) {
-                setText(""); // Clear text state
-                editor?.commands.setContent(""); // Clear TipTap content
-            }
-        } catch (error) {
-            console.error("PDF Download Error:", error);
-            alert("Failed to download the PDF. Please try again.");
-        }
-    };
-
-
+    // useEffect(() => {
+    //     if (text) {
+    //         localStorage.setItem("userTypedText", text);
+    //         paginateText(text);
+    //         handleTyping(text);
+    //     }
+    // }, [text]);
 
     // const downloadPDF = async () => {
     //     const pdf = new jsPDF();
@@ -978,7 +986,41 @@ const Editor = () => {
 
     //     pdf.save("Document.pdf");
     // };
+    // const editor = useEditor({
+    //     extensions: [StarterKit, Underline, TextStyle],
+    //     content: text,
 
+    //     onUpdate: ({ editor }) => {
+    //         paginateText(editor.getHTML());
+    //     },
+    // });
+
+
+    const downloadPDF = async () => {
+        const pdf = new jsPDF();
+        const pageElements = document.querySelectorAll(".editor-page");
+
+        for (let i = 0; i < pageElements.length; i++) {
+            const canvas = await html2canvas(pageElements[i]);
+            const imgData = canvas.toDataURL("image/png");
+            const imgWidth = 210; // A4 width
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+            if (i > 0) {
+                pdf.addPage();
+            }
+            pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+        }
+
+        pdf.save("Document.pdf");
+    };
+
+    // useEffect(() => {
+    //     if (editor && printRef.current) {
+    //         printRef.current.scrollTop = printRef.current.scrollHeight;
+    //         editor.commands.focus();
+    //     }
+    // }, [paginatedPages]);
 
 
     useEffect(() => {
@@ -1039,7 +1081,16 @@ const Editor = () => {
         setParagraphCount(paragraphCount + 1);
     };
 
+    // const handleAddParagraph = () => {
+    //     if (!editor) return;
 
+    //     // Insert a new paragraph with extra space
+    //     editor.commands.insertContent("<p style='margin-top: 0px;'>&nbsp;&nbsp;&nbsp;&nbsp;</p>");
+
+    //     // Move the cursor to the newly inserted paragraph
+    //     editor.commands.focus();
+    //     editor.commands.setTextSelection(editor.state.doc.content.size - 1);
+    // };
 
 
     const handlePageSizeChange = (e) => {
@@ -1069,6 +1120,52 @@ const Editor = () => {
         setIsVerified(verified);
     }, []);
 
+    // download in pdf
+    // const downloadPDF = async () => {
+    //     if (!isVerified) {
+    //         alert("You must verify your email before downloading.");
+    //         navigateToVerificationPage();
+    //         return;
+    //     }
+
+    //     const doc = new jsPDF({
+    //         orientation: orientation,
+    //         unit: "cm",
+    //         format: [pageSize.width, pageSize.height],
+    //     });
+
+    //     // Loop through each page and add it to the PDF
+    //     for (let i = 0; i < paginatedPages.length; i++) {
+    //         if (i > 0) doc.addPage();
+    //         const pageElement = document.querySelector(`.editor-page:nth-child(${i + 1})`);
+
+    //         if (pageElement) {
+    //             const canvas = await html2canvas(pageElement, { scale: 2, useCORS: true });
+    //             const imgData = canvas.toDataURL("image/png");
+    //             doc.addImage(
+    //                 imgData,
+    //                 "PNG",
+    //                 margins.left,
+    //                 margins.top,
+    //                 pageSize.width - margins.left - margins.right,
+    //                 pageSize.height - margins.top - margins.bottom
+    //             );
+    //         }
+    //     }
+
+    //     doc.save("document.pdf");
+
+    //     // ✅ Clear the editor content after saving
+    //     // ✅ Show confirmation before clearing the editor
+    //     const confirmClear = window.confirm("Do you want to clear the text for new typing?");
+    //     if (confirmClear) {
+    //         setText(""); // Clear text state
+    //         editor?.commands.setContent(""); // Clear TipTap editor content
+    //     }
+    // };
+
+
+    // save file text
     const saveToFile = () => {
         if (!isVerified) {
             alert("You must verify your email before saving.");
@@ -1154,25 +1251,26 @@ const Editor = () => {
     };
 
     // // Save in draft (updated)
-    const saveDraftToBrowser = (textContent) => {
-        const plainText = textContent
-            .replace(/<\/?strong>/g, "") // Remove <strong> tags
-            .replace(/<\/?b>/g, "") // Remove <b> tags
-            .replace(/<\/?u>/g, "") // Remove <u> tags
-            .replace(/<\/?i>/g, "") // Remove <i> tags
-            .replace(/<\/?em>/g, "") // Remove <em> tags
-            .replace(/<\/?p>/g, "\n") // Convert <p> to new lines
-            .replace(/<\/?br>/g, "\n") // Convert <br> to new lines
-            .replace(/&nbsp;/g, " ") // Convert HTML spaces to normal spaces
-            .trim(); // Remove extra spaces
+    // const saveDraftToBrowser = (textContent) => {
+    //     const plainText = textContent
+    //         .replace(/<\/?strong>/g, "") // Remove <strong> tags
+    //         .replace(/<\/?b>/g, "") // Remove <b> tags
+    //         .replace(/<\/?u>/g, "") // Remove <u> tags
+    //         .replace(/<\/?i>/g, "") // Remove <i> tags
+    //         .replace(/<\/?em>/g, "") // Remove <em> tags
+    //         .replace(/<\/?p>/g, "\n") // Convert <p> to new lines
+    //         .replace(/<\/?br>/g, "\n") // Convert <br> to new lines
+    //         .replace(/&nbsp;/g, " ") // Convert HTML spaces to normal spaces
+    //         .trim(); // Remove extra spaces
 
-        localStorage.setItem("draftText", plainText);
-    };
-
-
+    //     localStorage.setItem("draftText", plainText);
+    // };
 
 
 
+
+    const fontSizes = [8, 10, 12, 14, 16, 18, 20, 24, 28, 32, 34];
+    const [fontSize, setFontSize] = useState(fontSizes[16]); // Default font size
 
     const handleFontSizeChange = (e) => {
         const newSize = parseInt(e.target.value, 10);
@@ -1186,7 +1284,8 @@ const Editor = () => {
         }
     };
 
-
+    const dropdownRef = useRef(null);
+    const buttonRef = useRef(null);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -1200,6 +1299,8 @@ const Editor = () => {
     }, []);
 
     const handleButtonClick = () => setIsDropdownVisible((prev) => !prev);
+
+
 
     // ✅ Use `useEffect` to ensure `localStorage` runs only on the client
 
@@ -1284,7 +1385,16 @@ const Editor = () => {
     };
 
 
-
+    // const handlePrint = () => {
+    //     const printContent = printRef.current;
+    //     const newWindow = window.open("", "_blank");
+    //     newWindow.document.write("<html><head><title>Print</title>");
+    //     newWindow.document.write("</head><body>");
+    //     newWindow.document.write(printContent.innerHTML);
+    //     newWindow.document.write("</body></html>");
+    //     newWindow.document.close();
+    //     newWindow.print();
+    // };
     const handlePrint = () => {
         const content = printRef.current;
         const originalContent = document.body.innerHTML;
@@ -1297,6 +1407,11 @@ const Editor = () => {
         document.body.innerHTML = originalContent;
         window.location.reload(); // Optional: Reload page to restore event listeners
     };
+
+
+
+
+
     const navigateToVerificationPage = () => router.push('/user');
 
     //     // user can't start copy text
@@ -1319,6 +1434,10 @@ const Editor = () => {
             setSelectedTemplate(localStorage.getItem("templateKey") || "");
         }
     }, [editor]);
+
+
+
+
 
     const handleTemplateSelect = (templateKey) => {
         if (!editor) return;
@@ -1374,6 +1493,15 @@ const Editor = () => {
         }
     };
 
+
+
+
+
+
+
+
+
+
     if (!editor) {
         return <p>Loading editor...</p>;
     }
@@ -1408,7 +1536,7 @@ const Editor = () => {
                 <div className="flex-1 p-4 ">
 
                     <Toolbar executeCommand={executeCommand} handleAddParagraph={handleAddParagraph} fontSize={fontSize} handleFontSizeChange={handleFontSizeChange} fontSizes={fontSizes} editor={editor} />
-                    <EditorComponent setPaginatedPages={setPaginatedPages} pageRef={pageRef} currentPageIndex={currentPageIndex} setCurrentPageIndex={setCurrentPageIndex} ref={printRef} editor={editor} paginatedPages={paginatedPages} pageSize={pageSize} fontSize={fontSize} selectedFont={selectedFont} margins={margins} />
+                    <EditorComponent pageRef={pageRef} ref={printRef} editor={editor} paginatedPages={paginatedPages} pageSize={pageSize} fontSize={fontSize} selectedFont={selectedFont} margins={margins} />
 
 
 
@@ -1419,20 +1547,3 @@ const Editor = () => {
 };
 
 export default Editor;
-
-
-const ThumbnailSidebar = ({ paginatedPages, onPageClick }) => {
-    return (
-        <div className="thumbnail-sidebar">
-            {paginatedPages.map((page, index) => (
-                <div
-                    key={index}
-                    className="thumbnail"
-                    onClick={() => onPageClick(index)}
-                >
-                    Page {index + 1}
-                </div>
-            ))}
-        </div>
-    );
-};
