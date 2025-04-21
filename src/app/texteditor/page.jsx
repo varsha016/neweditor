@@ -1,5 +1,3 @@
-
-
 "use client"
 
 import React, { useState, useEffect, useRef, useLayoutEffect, } from 'react';
@@ -14,6 +12,8 @@ import StarterKit from '@tiptap/starter-kit';
 import Bold from "@tiptap/extension-bold";
 import Italic from "@tiptap/extension-italic";
 import Underline from '@tiptap/extension-underline';
+
+import FontSize from '@tiptap/extension-font-size';
 import TextStyle from "@tiptap/extension-text-style"; // Required for font-size
 import useDisableCopy from '../hook/page';
 
@@ -23,7 +23,9 @@ import Header from '../main/header/page';
 import Sidebar from '../main/sidebar/page';
 import Toolbar from '../main/toolbar/page';
 import templates from '../main/templates';
-import EditorComponent from '../main/editorComponent/page';
+import dynamic from "next/dynamic";
+const EditorComponent = dynamic(() => import("../main/editorComponent/page"), { ssr: false });
+// import EditorComponent from '../main/editorComponent/page';
 
 const languageOptions = [
     { code: "en-IN", name: "English", fonts: ["Arial", "Times New Roman", "Calibri", "Verdana", "Georgia"] },
@@ -78,7 +80,7 @@ const Editor = () => {
     const [isLeftSidebarVisible, setIsLeftSidebarVisible] = useState(true);
 
     const fontSizes = [8, 10, 12, 14, 16, 18, 20, 24, 28, 32, 34];
-    const [fontSize, setFontSize] = useState(fontSizes[16]); // Default font size
+    const [fontSize, setFontSize] = useState(fontSizes[4]); // Default font size
 
 
     const dropdownRef = useRef(null);
@@ -109,7 +111,9 @@ const Editor = () => {
     const isUpdating = useRef(false); // Track content updates
 
     const editor = useEditor({
-        extensions: [StarterKit, Underline, TextStyle],
+        extensions: [StarterKit, Underline, TextStyle, FontSize.configure({
+            types: ['textStyle'],
+        }),],
         content: paginatedPages[currentPageIndex],
         onUpdate: ({ editor }) => {
             if (!isUpdating.current) {
@@ -350,9 +354,11 @@ const Editor = () => {
 
     const handlePageSizeChange = (e) => {
         const newSize = e.target.value;
+        console.log("Selected Page Size:", newSize, pageSizes[newSize]);
         setSelectedSize(newSize);
         setPageSize(pageSizes[newSize]);
     };
+
 
     const startVoiceTyping = () => {
         if (recognition) {
@@ -476,22 +482,39 @@ const Editor = () => {
     };
 
 
-
-
-
-
     const handleFontSizeChange = (e) => {
-        const newSize = parseInt(e.target.value, 10);
+        const newSize = parseInt(e.target.value);
         setFontSize(newSize);
+
         if (editor) {
-            editor
-                .chain()
-                .focus()
-                .setMark("textStyle", { fontSize: `${newSize}px` }) // Correct way to apply font size
-                .run();
+            editor.chain().focus().setFontSize(`${newSize}px`).run(); // Apply font size change
         }
     };
 
+
+
+    // const handleFontSizeChange = (e) => {
+    //     const newSize = parseInt(e.target.value, 10);
+    //     setFontSize(newSize);
+
+    //     if (editor) {
+    //         // For new content
+    //         if (!editor.getText().trim()) {
+    //             editor.commands.setContent(
+    //                 `<p style="font-size: ${newSize}px">Start typing...</p>`
+    //             );
+    //         } else {
+    //             // For existing content
+    //             editor.chain()
+    //                 .focus()
+    //                 .setMark('textStyle', { fontSize: `${newSize}px` })
+    //                 .run();
+    //         }
+
+    //         // Update pagination with new size
+    //         updatePagination(editor.getHTML());
+    //     }
+    // };
 
 
     useEffect(() => {
@@ -684,7 +707,7 @@ const Editor = () => {
         return <p>Loading editor...</p>;
     }
 
-
+    console.log("Editor State:", { selectedSize, margins, pageSizes });
     return (
         <div className="flex flex-col h-screen">
             <Header isRecording={isRecording} startVoiceTyping={startVoiceTyping} stopVoiceTyping={stopVoiceTyping} downloadPDF={downloadPDF} saveToFile={saveToFile}
@@ -703,18 +726,36 @@ const Editor = () => {
                 languageOptions={languageOptions} handleFontChange={handleFontChange} fonts={fonts} selectedFont={selectedFont} />
             <div className="flex flex-1">
                 <Sidebar
-                    isTyping={isTyping}
-
                     isLeftSidebarVisible={isLeftSidebarVisible}
-                    setIsLeftSidebarVisible={setIsLeftSidebarVisible} orientation={orientation}
-                    setOrientation={setOrientation} selectedSize={selectedSize} handlePageSizeChange={handlePageSizeChange} margins={margins}
-                    setMargins={setMargins} handleAddParagraph={handleAddParagraph} pageSizes={pageSizes}
-
+                    setIsLeftSidebarVisible={setIsLeftSidebarVisible}
+                    orientation={orientation}
+                    setOrientation={setOrientation}
+                    selectedSize={selectedSize}
+                    handlePageSizeChange={handlePageSizeChange}
+                    margins={margins}
+                    setMargins={setMargins}
+                    pageSizes={pageSizes}
                 />
                 <div className="flex-1 p-4 ">
 
                     <Toolbar executeCommand={executeCommand} handleAddParagraph={handleAddParagraph} fontSize={fontSize} handleFontSizeChange={handleFontSizeChange} fontSizes={fontSizes} editor={editor} />
-                    <EditorComponent setPaginatedPages={setPaginatedPages} pageRef={pageRef} currentPageIndex={currentPageIndex} setCurrentPageIndex={setCurrentPageIndex} ref={printRef} editor={editor} paginatedPages={paginatedPages} pageSize={pageSize} fontSize={fontSize} selectedFont={selectedFont} margins={margins} />
+                    <EditorComponent
+                        setPaginatedPages={setPaginatedPages}
+                        pageRef={pageRef}
+                        currentPageIndex={currentPageIndex}
+                        setCurrentPageIndex={setCurrentPageIndex}
+                        ref={printRef}
+                        editor={editor}
+                        paginatedPages={paginatedPages}
+                        pageSize={pageSize}
+                        fontSize={fontSize}
+
+                        // fontSize={fontSizes[4]}
+                        selectedFont={selectedFont}
+                        margins={margins}
+                        orientation={orientation} // Make sure to pass this
+                    />
+                    {/* <EditorComponent setPaginatedPages={setPaginatedPages} pageRef={pageRef} currentPageIndex={currentPageIndex} setCurrentPageIndex={setCurrentPageIndex} ref={printRef} editor={editor} paginatedPages={paginatedPages} pageSize={pageSize} fontSize={fontSize} selectedFont={selectedFont} margins={margins} /> */}
 
 
 

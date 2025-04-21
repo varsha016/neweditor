@@ -4,8 +4,31 @@
 
 
 
+.editor-page {
+  font-size: inherit;
+  /* This will use the component's style */
+}
 
+/* Apply font size to all content */
+.editor-page * {
+  font-size: inherit;
+}
 
+/* Ensure font sizes are applied properly */
+.ProseMirror {
+  font-size: inherit !important;
+}
+
+/* Target text with font size attributes */
+span[style*="font-size"] {
+  font-size: inherit !important;
+}
+
+/* Make sure toolbar select is visible */
+select {
+  background-color: white;
+  color: black;
+}
 
 .ProseMirror {
   white-space: pre-wrap;
@@ -19,12 +42,29 @@
   justify-content: center;
 }
 
-.editor-page {
+/* .editor-page {
   overflow: hidden;
   background: white;
   border: 1px solid #ccc;
   margin-bottom: 1rem;
   padding: 2rem;
+} */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .editor-page,
+  .editor-page * {
+    visibility: visible;
+  }
+
+  .editor-page {
+    position: absolute;
+    left: 0;
+    top: 0;
+    page-break-after: always;
+  }
 }
 
 /* .editor-container p {

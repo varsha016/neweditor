@@ -1,5 +1,5 @@
 "use client";
-import React, { forwardRef } from "react";
+import React, { forwardRef, useEffect } from "react";
 import { EditorContent } from "@tiptap/react";
 
 const EditorComponent = forwardRef(
@@ -14,11 +14,13 @@ const EditorComponent = forwardRef(
         selectedFont,
         margins,
         pageRef,
+        orientation
     }, ref) => {
         const handlePageChange = (index) => {
             setCurrentPageIndex(index);
             editor?.commands?.setContent(paginatedPages[index]);
         };
+
 
         return (
             <div className="flex flex-col items-center">
@@ -27,7 +29,20 @@ const EditorComponent = forwardRef(
                         <div
                             key={index}
                             ref={(el) => (pageRef.current[index] = el)}
-                            className="w-[21cm] h-[29.7cm] bg-white shadow-lg p-6 mb-4 overflow-hidden relative"
+                            className="editor-page"
+                            style={{
+                                width: `${orientation === 'portrait' ? pageSize.width : pageSize.height}cm`,
+                                height: `${orientation === 'portrait' ? pageSize.height : pageSize.width}cm`,
+                                margin: '20px auto',
+                                padding: `${margins.top}cm ${margins.right}cm ${margins.bottom}cm ${margins.left}cm`,
+                                boxShadow: '0 0 5px rgba(0,0,0,0.2)',
+                                backgroundColor: 'white',
+                                overflow: 'hidden',
+                                fontSize: `${fontSize}px`
+                            }}
+                        // key={index}
+                        // ref={(el) => (pageRef.current[index] = el)}
+                        // className="w-[21cm] h-[29.7cm] bg-white shadow-lg p-6 mb-4 overflow-hidden relative"
                         >
                             <span className="absolute top-1 right-1 text-gray-400">
                                 Page {index + 1}
