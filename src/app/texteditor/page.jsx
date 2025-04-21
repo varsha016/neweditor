@@ -1,31 +1,18 @@
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 "use client"
 
 import React, { useState, useEffect, useRef, useLayoutEffect, } from 'react';
 
-// import { HiOutlineDocumentText } from 'react-icons/hi';
+import { HiOutlineDocumentText } from 'react-icons/hi';
 // import { jsPDF } from 'jspdf';
 import jsPDF from "jspdf";
 import html2canvas from 'html2canvas';
 import { useRouter } from 'next/navigation';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-// import Bold from "@tiptap/extension-bold";
-// import Italic from "@tiptap/extension-italic";
+import Bold from "@tiptap/extension-bold";
+import Italic from "@tiptap/extension-italic";
 import Underline from '@tiptap/extension-underline';
 import TextStyle from "@tiptap/extension-text-style"; // Required for font-size
 import useDisableCopy from '../hook/page';
@@ -715,7 +702,7 @@ const Editor = () => {
                 dropdownRef={dropdownRef} buttonRef={buttonRef} handleLanguageChange={handleLanguageChange} language={language}
                 languageOptions={languageOptions} handleFontChange={handleFontChange} fonts={fonts} selectedFont={selectedFont} />
             <div className="flex flex-1">
-                {/* <Sidebar
+                <Sidebar
                     isTyping={isTyping}
 
                     isLeftSidebarVisible={isLeftSidebarVisible}
@@ -723,17 +710,6 @@ const Editor = () => {
                     setOrientation={setOrientation} selectedSize={selectedSize} handlePageSizeChange={handlePageSizeChange} margins={margins}
                     setMargins={setMargins} handleAddParagraph={handleAddParagraph} pageSizes={pageSizes}
 
-                /> */}
-                <Sidebar
-                    isLeftSidebarVisible={isLeftSidebarVisible}
-                    setIsLeftSidebarVisible={setIsLeftSidebarVisible}
-                    orientation={orientation}
-                    setOrientation={setOrientation}
-                    selectedSize={selectedSize}
-                    handlePageSizeChange={handlePageSizeChange}
-                    margins={margins}
-                    setMargins={setMargins}
-                    pageSizes={pageSizes}
                 />
                 <div className="flex-1 p-4 ">
 
@@ -749,20 +725,3 @@ const Editor = () => {
 };
 
 export default Editor;
-
-
-// const ThumbnailSidebar = ({ paginatedPages, onPageClick }) => {
-//     return (
-//         <div className="thumbnail-sidebar">
-//             {paginatedPages?.map((page, index) => (
-//                 <div
-//                     key={index}
-//                     className="thumbnail"
-//                     onClick={() => onPageClick(index)}
-//                 >
-//                     Page {index + 1}
-//                 </div>
-//             ))}
-//         </div>
-//     );
-// };
