@@ -17,15 +17,15 @@
 
 import React, { useState, useEffect, useRef, useLayoutEffect, } from 'react';
 
-import { HiOutlineDocumentText } from 'react-icons/hi';
+// import { HiOutlineDocumentText } from 'react-icons/hi';
 // import { jsPDF } from 'jspdf';
 import jsPDF from "jspdf";
 import html2canvas from 'html2canvas';
 import { useRouter } from 'next/navigation';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import Bold from "@tiptap/extension-bold";
-import Italic from "@tiptap/extension-italic";
+// import Bold from "@tiptap/extension-bold";
+// import Italic from "@tiptap/extension-italic";
 import Underline from '@tiptap/extension-underline';
 import TextStyle from "@tiptap/extension-text-style"; // Required for font-size
 import useDisableCopy from '../hook/page';
