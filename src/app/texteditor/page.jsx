@@ -13,7 +13,7 @@ import Bold from "@tiptap/extension-bold";
 import Italic from "@tiptap/extension-italic";
 import Underline from '@tiptap/extension-underline';
 
-import FontSize from '@tiptap/extension-font-size';
+
 import TextStyle from "@tiptap/extension-text-style"; // Required for font-size
 import useDisableCopy from '../hook/page';
 
@@ -111,9 +111,7 @@ const Editor = () => {
     const isUpdating = useRef(false); // Track content updates
 
     const editor = useEditor({
-        extensions: [StarterKit, Underline, TextStyle, FontSize.configure({
-            types: ['textStyle'],
-        }),],
+        extensions: [StarterKit, Underline, TextStyle,],
         content: paginatedPages[currentPageIndex],
         onUpdate: ({ editor }) => {
             if (!isUpdating.current) {
@@ -482,15 +480,19 @@ const Editor = () => {
     };
 
 
+    // const handleFontSizeChange = (e) => {
+    //     const newSize = parseInt(e.target.value);
+    //     setFontSize(newSize);
+
+    //     if (editor) {
+    //         editor.chain().focus().setFontSize(`${newSize}px`).run(); // Apply font size change
+    //     }
+    // };
     const handleFontSizeChange = (e) => {
-        const newSize = parseInt(e.target.value);
+        const newSize = e.target.value;
         setFontSize(newSize);
-
-        if (editor) {
-            editor.chain().focus().setFontSize(`${newSize}px`).run(); // Apply font size change
-        }
+        editor?.chain().focus().setMark('textStyle', { fontSize: `${newSize}px` }).run();
     };
-
 
 
     // const handleFontSizeChange = (e) => {
