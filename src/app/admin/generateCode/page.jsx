@@ -1,4 +1,5 @@
 "use client";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function GenerateCodesForm() {
@@ -6,6 +7,7 @@ export default function GenerateCodesForm() {
     const [count, setCount] = useState(1); // Default to 1 if count is not specified
     const [message, setMessage] = useState("");
     const [codes, setCodes] = useState([]);
+    const router = useRouter()
 
     // Handle form submission
     const handleSubmit = async (e) => {
@@ -33,6 +35,7 @@ export default function GenerateCodesForm() {
             if (response.ok) {
                 setCodes(data.codes);  // Update codes state with the generated codes
                 setMessage(data.message);  // Update message with success message
+                router.push("./dashboard");
             } else {
                 setMessage(data.message);  // Show error message from API
             }

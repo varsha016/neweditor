@@ -118,7 +118,7 @@ const EditorComponent = forwardRef(
 
         const handlePageChange = (index) => {
             setCurrentPageIndex(index);
-            editor.commands.setContent(paginatedPages[index]);
+            editor?.commands?.setContent(paginatedPages[index]);
         };
         return (<>
             <div className="flex flex-col items-center">
